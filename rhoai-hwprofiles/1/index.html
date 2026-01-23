@@ -126,8 +126,173 @@
 </aside>
 <article class="doc">
 <h1 class="page">Hardware Governance at Scale with RHOAI Hardware Profiles</h1>
+<h1 id="_mastering_rhoai_hardware_profiles" class="sect0"><a class="anchor" href="#_mastering_rhoai_hardware_profiles"></a>Mastering RHOAI Hardware Profiles</h1>
+<div class="sect1">
+<h2 id="_the_compute_supply_chain_from_hoarding_to_governance"><a class="anchor" href="#_the_compute_supply_chain_from_hoarding_to_governance"></a>The Compute Supply Chain: From Hoarding to Governance</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>Unresolved include directive in modules/ROOT/pages/index.adoc - include::chapter1:pages/index.adoc[]</p>
+<p><strong>Stop lighting your GPU budget on fire. Start building an allocation engine.</strong></p>
+</div>
+<div class="paragraph">
+<p>In the modern AI enterprise, silicon is the new gold. Yet, in many organizations, the consumption of this resource is treated like a "free-for-all." Data scientists hoard expensive GPUs "just in case," leaving them idle while high-priority training jobs sit in pending states. Development teams fight over scraps, and administrators are buried in tickets, manually pinning pods to specific nodes like air traffic controllers in a storm.</p>
+</div>
+<div class="paragraph">
+<p>This is the "Wild West" of AI infrastructure. It leads to massive waste, low ROI, and frustrated users.</p>
+</div>
+<div class="imageblock text-center unresolved">
+<div class="content">
+<img src="hardware_profiles.png" alt="hardware profiles">
+</div>
+<div class="title">Figure 1. Hardware profiles, the allocation engine for AI at scale</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">The Core Sales Objection</div>
+<div class="paragraph">
+<p><strong>"Why do we need Hardware Profiles? Can&#8217;t we just use public cloud APIs or standard Kubernetes node selectors?"</strong></p>
+</div>
+<div class="paragraph">
+<p>Public APIs are simple but drain your wallet with unpredictable fees. Basic Kubernetes node selectors work for five users but fail at fifty. You need a factory floor, not manual intervention. Hardware Profiles provide the governance layer that turns raw compute into a managed, efficient utility.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_solution_hardware_profiles"><a class="anchor" href="#_the_solution_hardware_profiles"></a>The Solution: Hardware Profiles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Red Hat OpenShift AI (RHOAI) Hardware Profile is the "vending machine" for your compute power. It transforms complex Kubernetes constraints—Taints, Tolerations, and Resource Limits—into a simple, governed menu for your users.</p>
+</div>
+<div class="paragraph">
+<p>Hardware Profiles serve as the abstraction layer between the complex physical reality of your data center (MIG partitions, specific GPU architectures) and the data scientists who just want to do their work.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_three_pillars_of_value"><a class="anchor" href="#_three_pillars_of_value"></a>Three Pillars of Value</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<div class="title">Hardware Profiles: The Bridge Between Silicon and Science</div>
+<p>By implementing Hardware Profiles, you unlock three critical capabilities that manual node management cannot provide:</p>
+</div>
+<div class="sect2">
+<h3 id="_1_maximize_roi_the_efficiency_engine"><a class="anchor" href="#_1_maximize_roi_the_efficiency_engine"></a>1. Maximize ROI ("The Efficiency Engine")</h3>
+<div class="paragraph">
+<p>Without profiles, a single user running a lightweight data prep notebook might lock an entire NVIDIA A100 GPU. This is financial waste.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>The Win:</strong> Hardware Profiles allow you to enable <strong>Time-Slicing</strong> or target <strong>Multi-Instance GPU (MIG)</strong> partitions.</p>
+</li>
+<li>
+<p><strong>The Benefit:</strong> You can squeeze 4 to 5 times more concurrent users onto the same physical hardware. You define a "Small GPU" profile that shares resources, reserving exclusive access only for "Training" profiles.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_2_automated_fairness_the_traffic_controller"><a class="anchor" href="#_2_automated_fairness_the_traffic_controller"></a>2. Automated Fairness ("The Traffic Controller")</h3>
+<div class="paragraph">
+<p>In a shared environment, "noisy neighbors" can crash critical experiments. Without arbitration, the first person to claim resources wins, regardless of priority.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>The Win:</strong> Hardware Profiles integrate natively with <strong>Kueue</strong>, a cloud-native job queuing system.</p>
+</li>
+<li>
+<p><strong>The Benefit:</strong> You achieve "Fair Share" scheduling. If Team A isn&#8217;t using their quota, Team B can borrow it instantly. When Team A returns, the system reclaims resources automatically. This ensures 100% utilization without political friction.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_industrialized_scale_the_user_experience"><a class="anchor" href="#_3_industrialized_scale_the_user_experience"></a>3. Industrialized Scale ("The User Experience")</h3>
+<div class="paragraph">
+<p>Data scientists should not need to learn YAML, Taints, or Tolerations to do their job. Forcing them to configure pod specs leads to errors and support tickets.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>The Win:</strong> Hardware Profiles abstract complexity into "T-Shirt sizes" (e.g., <strong>Small - CPU Only</strong>, <strong>Large - NVIDIA A100</strong>).</p>
+</li>
+<li>
+<p><strong>The Benefit:</strong> Users simply select a profile from a dropdown menu in the RHOAI dashboard. You define the rules once in the background, and the platform enforces them forever.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_your_mission_build_the_allocation_engine"><a class="anchor" href="#_your_mission_build_the_allocation_engine"></a>Your Mission: Build the Allocation Engine</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this course, you will not just learn about hardware limits; you will build an automated governance system. You will take on the role of a Platform Engineer tasked with industrializing a fleet of AI resources.</p>
+</div>
+<div class="paragraph">
+<p>You will execute the following technical workflow:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Discovery &amp; Labeling:</strong> You will use CLI tools to identify your physical accelerators and apply the necessary labels to distinguish between different hardware types (e.g., <code>nvidia.com/gpu</code> vs <code>intel.com/gaudi</code>).</p>
+</li>
+<li>
+<p><strong>Automated Creation:</strong> You will move beyond the UI to define <code>HardwareProfile</code> Custom Resources (CRs) as code, setting strict CPU/Memory limits and tolerations.</p>
+</li>
+<li>
+<p><strong>The Payoff (Integration):</strong> You will connect these profiles to <strong>Kueue</strong>, enabling advanced scheduling logic that automatically manages quotas across different teams.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Prerequisites</div>
+<div class="paragraph">
+<p>To successfully complete the hands-on sections of this course, you need:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Access to a <strong>Red Hat OpenShift AI 3.2</strong> cluster.</p>
+</li>
+<li>
+<p><strong>Cluster-admin privileges</strong> (to install Operators and apply node labels).</p>
+</li>
+<li>
+<p>The <strong>Node Feature Discovery (NFD)</strong> Operator installed.</p>
+</li>
+<li>
+<p>The <strong>NVIDIA GPU Operator</strong> (if testing GPU profiles).</p>
+</li>
+<li>
+<p>The <code>oc</code> CLI tool installed in your terminal.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Ready to reclaim your compute budget? Let&#8217;s start by analyzing your hardware landscape.</p>
+</div>
+</div>
 </div>
 <nav class="pagination">
   <span class="next"><a href="chapter1/index.html">Introduction to Hardware Profiles</a></span>
