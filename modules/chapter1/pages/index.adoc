@@ -1,4 +1,4 @@
-= Mastering RHOAI Hardware Profiles
+= The Compute Supply Chain: From Hoarding to Governance
 :navtitle: Introduction to Hardware Profiles
 :imagesdir: ../images
 

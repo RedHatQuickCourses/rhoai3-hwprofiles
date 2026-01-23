@@ -1,4 +1,4 @@
-= Hardware Governance at Scale with RHOAI Hardware Profiles
+= Making RHOAI Hardware Profiles Work for You
 :navtitle: Home
 :imagesdir: ../chapter1/images
 
