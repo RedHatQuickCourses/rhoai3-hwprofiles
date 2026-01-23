@@ -1,4 +1,4 @@
-= Hardware Profiles in OpenShift AI: A Comprehensive Guide
+= Hardware Profiles in OpenShift AI
 :navtitle: Hardware Profiles Guide
 :imagesdir: ../images
 
@@ -43,7 +43,7 @@ When designing a profile, you need to define three categories of information. Us
 
 * *Name:* The user-facing name (e.g., "NVIDIA A100 - Large").
 * *Description:* Guidance for the user (e.g., "Use this for Large Language Model training").
-* *Visibility:* Decide if this profile is available to *everyone* or restricted to specific groups or projects.
+* *Visibility:* Decide if this profile is available to *everyone* or *restricted to model serving and workbench deployments*.
 
 === B. Identifiers & Tolerations (The "Target")
 
@@ -52,6 +52,9 @@ This section tells Kubernetes *where* to run the workload.
 * *Identifier:* If targeting a GPU, enter the resource label (e.g., `nvidia.com/gpu`).
 * *Tolerations:* If you have "tainted" your expensive GPU nodes to prevent general workloads from landing there (e.g., `key=gpu, effect=NoSchedule`), you must add the matching *Toleration* here. This ensures only users selecting this profile can bypass the restriction.
 * *Node Selectors:* Use these to pin workloads to specific node labels (e.g., `instance-type=p4d.24xlarge`).
+
+image::selectors-tolerations.png[align="center", title="Node Selectors, Tolerations, and Hardware Profiles"]
+
 
 === C. Resource Limits (The "Sizing")
 
