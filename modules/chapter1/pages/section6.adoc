@@ -1,0 +1,64 @@
+= Day 2 Operations: Governance, Scoping, and Troubleshooting
+:navtitle: Operations & Troubleshooting
+:imagesdir: ../images
+
+Building the profiles is only step one. To run an "Industrialized" AI platform, you must effectively govern access to these resources and quickly resolve scheduling bottlenecks. This guide covers how to scope profiles to specific teams and troubleshoot common "Pending" state issues.
+
+== 1. Governance: Global vs. Project-Scoped Profiles
+
+Not every team needs access to your most expensive hardware. You can control the visibility of Hardware Profiles by defining where they live in the cluster.
+
+=== Global Profiles (Public Utility)
+Global profiles are visible to **all users** in the OpenShift AI dashboard. Use these for generic resources (e.g., "Standard CPU", "Shared GPU").
+
+* *How to Configure:* Create the `HardwareProfile` Custom Resource (CR) in the **dashboard application namespace** (typically `redhat-ods-applications`).
+* *Use Case:* General development, interactive notebooks, introductory training.
+
+=== Project-Scoped Profiles (Private Reserve)
+Project-scoped profiles are visible *only* to users within a specific Data Science Project. Use these for specialized hardware reserved for advanced teams (e.g., "Finance Team H100").
+
+* *How to Configure:* Create the `HardwareProfile` CR inside the **user's project namespace** (e.g., `finance-models-prod`).
+* *Use Case:* Sensitive workloads, reserved capacity for high-priority projects, hardware with specific regulatory compliance requirements.
+
+[TIP]
+====
+[cite_start]To enable the UI to distinguish between these scopes, ensure the dashboard configuration setting `disableProjectScoped` is set to `false`. [cite: 1915]
+====
+
+== 2. Troubleshooting Common Issues
+
+When a user selects a profile and their workbench fails to start, the issue usually lies in the handshake between the Profile limits and the Node capacity.
+
+=== Scenario A: The "Pending" State (Capacity vs. Quota)
+* *Symptom:* The workbench status remains "Pending" indefinitely.
+* *Check 1 (Kueue Quota):* If using the **Local Queue** strategy, the project may have exhausted its assigned quota.
+** _Fix:_ Check the `LocalQueue` status or increase the `ClusterQueue` limits.
+* *Check 2 (Physical Capacity):* If using **Node Selectors/Taints**, there may be no physical nodes available with that label.
+** _Fix:_ Run `oc get nodes -l <selector-key>=<selector-value>` to verify matching nodes exist and have allocatable capacity.
+
+=== Scenario B: "Unschedulable" (Taint Mismatch)
+* *Symptom:* The pod events show `0/5 nodes are available: 5 node(s) had taint {nvidia.com/gpu: true}, that the pod didn't tolerate.`
+* *Root Cause:* The Node has a Taint, but the Hardware Profile is missing the matching Toleration.
+* *Fix:* Edit the Hardware Profile YAML. [cite_start]Add the exact `key`, `value`, and `effect` that matches the Node Taint. [cite: 55]
+
+=== Scenario C: Profile Not Visible in Dashboard
+* *Symptom:* You created the YAML, but the dropdown list is empty.
+* *Check 1:* Verify `enabled: true` is set in the CR spec.
+* *Check 2:* Verify the profile is in the correct namespace (`redhat-ods-applications` for global).
+* *Check 3:* Check if the `identifiers` in the profile match what the Node Feature Discovery (NFD) operator is reporting. [cite_start]If NFD detects `nvidia.com/gpu` but your profile requests `nvidia.com/mig-1g.5gb`, the system may filter it out if no nodes report that specific MIG slice. [cite: 12-13]
+
+== 3. Verification & Auditing
+
+To ensure your governance rules are working, you can inspect the resulting Pod specification.
+
+.Command to inspect a running workbench pod
+[source,bash]
+----
+oc get pod <workbench-pod-name> -o yaml
+----
+
+* *Verify Limits:* Look under `spec.containers.resources`. Do the requests match your profile's defaults?
+* *Verify Tolerations:* Look under `spec.tolerations`. Is the "magic key" present?
+* *Verify Queue:* Look for the label `kueue.x-k8s.io/queue-name`. [cite_start]Is it pointing to the correct Local Queue? [cite: 27]
+
+By mastering these operational checks, you move from "setting up hardware" to "delivering a reliable service."

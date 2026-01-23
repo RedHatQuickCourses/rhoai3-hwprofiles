@@ -1,6 +1,6 @@
 site:
-  title: FIXME Course Title
-  start_page: REPLACEREPONAME::index.adoc
+  title: Hardware Governance at Scale with RHOAI Hardware Profiles. 
+  start_page: rhoai-hwprofiles::index.adoc
 
 content:
   sources:

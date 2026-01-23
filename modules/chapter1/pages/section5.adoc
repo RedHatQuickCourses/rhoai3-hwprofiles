@@ -1,0 +1,106 @@
+= Maximizing ROI: GPU Sharing & MIG Strategies
+:navtitle: GPU Sharing & MIG
+:imagesdir: ../images
+
+The most expensive resource in your AI platform is often the GPU. Allocating a full NVIDIA A100 (80GB) to a data scientist running a simple Jupyter notebook is a massive waste of capital.
+
+Hardware Profiles allow you to unlock *fractional consumption*. By integrating with NVIDIA's advanced partitioning features, you can squeeze 4-7x more users onto the same physical hardware.
+
+== Two Paths to Efficiency
+
+You have two primary mechanisms for sharing NVIDIA GPUs in OpenShift AI. Your Hardware Profile strategy depends on which one you choose.
+
+.Comparison of Sharing Strategies
+[cols="1,1,1", options="header"]
+|===
+|Feature |Isolation Level |Best Use Case
+
+|*Time-Slicing*
+|Software (Shared Memory)
+|Lightweight workloads, dev/test notebooks, oversubscribing resources.
+
+|*Multi-Instance GPU (MIG)*
+|Hardware (Dedicated Memory)
+|Strict isolation, guaranteed QoS, mixed workloads (e.g., Training vs. Inference).
+|===
+
+
+
+---
+
+== Strategy 1: Time-Slicing (The "Oversubscription" Model)
+
+[cite_start]Time-slicing allows multiple pods to share a single GPU by taking turns (interleaving) on the compute engine[cite: 3084]. This is ideal for interactive workbenches where users spend most of their time coding and only bursts of time executing cells.
+
+=== How it Works
+The NVIDIA GPU Operator advertises a single physical GPU as multiple "replicas" (e.g., 1 GPU appears as 4).
+
+=== Configuration Steps
+
+. [cite_start]*Enable Time-Slicing:* Create a `ConfigMap` in the GPU Operator namespace defining the replicas (e.g., 4 slices per GPU)[cite: 3107].
+. [cite_start]*Update Cluster Policy:* Configure the GPU Operator to read this map[cite: 3136].
+. *Create the Hardware Profile:*
++
+In this scenario, the resource identifier remains `nvidia.com/gpu`. The "magic" happens at the node level. You do not need a special identifier in the profile, but you should name it clearly so users know it is shared.
+
+.Hardware Profile for Time-Slicing
+[source,yaml]
+----
+apiVersion: dashboard.opendatahub.io/v1alpha1
+kind: HardwareProfile
+metadata:
+  name: nvidia-shared-gpu
+spec:
+  displayName: "Shared GPU (Time-Sliced)"
+  description: "Best for notebooks and development. Compute is shared with neighbors."
+  identifiers:
+    - identifier: nvidia.com/gpu
+      count: 1
+  resourceLimits:
+    - name: memory
+      default: "8Gi" # Enforce limits to prevent one user from crashing the shared GPU
+      max: "16Gi"
+----
+
+[IMPORTANT]
+====
+With Time-Slicing, memory is shared. If one user consumes all VRAM, other users on the same GPU will crash (OOM). [cite_start]Always set strict `resourceLimits` in your profile to mitigate this risk[cite: 3090].
+====
+
+---
+
+== Strategy 2: Multi-Instance GPU (MIG) (The "Partition" Model)
+
+MIG physically partitions a supported GPU (like an A100 or H100) into completely isolated instances. A "1g.5gb" slice has its own dedicated memory and compute lanes. A user on Slice A cannot affect the performance of User B on Slice B.
+
+=== How it Works
+The Node Feature Discovery (NFD) operator detects these partitions and advertises them as *unique resource names* (e.g., `nvidia.com/mig-1g.5gb`).
+
+=== Configuration Steps
+
+. *Enable MIG:* Configure the NVIDIA GPU Operator to partition your A100s (e.g., "mixed" or "single" strategy).
+. *Identify the Resource Name:* Run `oc describe node` to find the specific MIG identifier exposed by NFD.
+. *Create the Hardware Profile:*
++
+Here, you *must* use the specific MIG identifier instead of the generic `nvidia.com/gpu`.
+
+.Hardware Profile for MIG
+[source,yaml]
+----
+apiVersion: dashboard.opendatahub.io/v1alpha1
+kind: HardwareProfile
+metadata:
+  name: nvidia-mig-small
+spec:
+  displayName: "Small GPU Slice (MIG 1g.5gb)"
+  description: "Dedicated hardware slice. 5GB vRAM. Good for inference and small models."
+  identifiers:
+    - identifier: nvidia.com/mig-1g.5gb  # <1> The specific MIG slice name
+      count: 1
+----
+<1> Note that the identifier is specific to the slice size. You might create multiple profiles (e.g., "Medium Slice - 2g.10gb", "Large Slice - 3g.20gb").
+
+== Summary: Which Profile do I Build?
+
+* **Use Time-Slicing Profiles** when you want to maximize density for a large team of developers who are mostly writing code, not training models.
+* **Use MIG Profiles** when you need to guarantee performance for inference services or ensure that a "noisy neighbor" cannot crash a critical job.

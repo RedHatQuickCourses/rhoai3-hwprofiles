@@ -1,6 +1,122 @@
-= Section 2
+= Hardware Profiles in OpenShift AI: A Comprehensive Guide
+:navtitle: Hardware Profiles Guide
+:imagesdir: ../images
 
-* Create multiple copies of this section as needed.
-* Remove any unnecessary sections or chapter pages.
-* Customize the section as appropriate.
-* Ensure that each page contains a manageable amount of content.
+Hardware profiles in Red Hat OpenShift AI act as templates that define specific hardware configurations for user workloads. They allow administrators to create a menu of available compute resources—such as "Small CPU", "Large Memory", or "NVIDIA A100 GPU"—that data scientists can easily select without needing to understand underlying Kubernetes complexities like taints, tolerations, or resource limits.
+
+== 1. What are Hardware Profiles?
+
+Hardware profiles are *Custom Resources (CRs)* that serve as an abstraction layer between the physical infrastructure and the end-user. Instead of manually requesting "4 CPUs and 16GB RAM" every time, a user selects a profile like "Standard Data Science" which pre-defines these values.
+
+*Key Benefits:*
+
+* *Governance:* Enforce limits on how much compute a single user can request.
+* *Simplicity:* Hide complex Kubernetes node selectors and tolerations behind user-friendly names.
+* *Efficiency:* Ensure workloads are scheduled on the correct hardware (e.g., ensuring GPU jobs only go to GPU nodes).
+
+---
+
+== 2. How to Create a Hardware Profile
+
+You create profiles primarily through the OpenShift AI Dashboard.
+
+=== Prerequisites
+
+* You must have *OpenShift AI Administrator* privileges.
+* If using accelerators (GPUs), the *Node Feature Discovery (NFD)* Operator and the specific hardware operator (e.g., NVIDIA GPU Operator) must be installed first.
+
+=== Steps to Create
+
+. Log in to the *OpenShift AI Dashboard*.
+. Navigate to *Settings* -> *Hardware profiles*.
+. Click *Create hardware profile*.
+. Fill in the required configuration fields (detailed in the next section).
+. Click *Create* to make the profile available to users.
+
+---
+
+== 3. Information Needed & Sizing Decisions
+
+When designing a profile, you need to define three categories of information. Use the guide below to make sizing decisions for each category.
+
+=== A. Metadata (The "Menu" Entry)
+
+* *Name:* The user-facing name (e.g., "NVIDIA A100 - Large").
+* *Description:* Guidance for the user (e.g., "Use this for Large Language Model training").
+* *Visibility:* Decide if this profile is available to *everyone* or restricted to specific groups or projects.
+
+=== B. Identifiers & Tolerations (The "Target")
+
+This section tells Kubernetes *where* to run the workload.
+
+* *Identifier:* If targeting a GPU, enter the resource label (e.g., `nvidia.com/gpu`).
+* *Tolerations:* If you have "tainted" your expensive GPU nodes to prevent general workloads from landing there (e.g., `key=gpu, effect=NoSchedule`), you must add the matching *Toleration* here. This ensures only users selecting this profile can bypass the restriction.
+* *Node Selectors:* Use these to pin workloads to specific node labels (e.g., `instance-type=p4d.24xlarge`).
+
+=== C. Resource Limits (The "Sizing")
+
+This is the most critical decision for cost and performance. You set *CPU* and *Memory* values:
+
+* *Request (Minimum):* The amount guaranteed to the container.
+** _Decision Tip:_ Set this to the minimum viable amount needed to start the kernel to avoid wasting cluster capacity.
+* *Limit (Maximum):* The hard ceiling.
+** _Decision Tip:_ Set this to prevent a single user from starving the node.
+* *Default:* The pre-filled value the user sees.
+
+.Example Sizing Strategy
+[cols="1,2,1,1,1", options="header"]
+|===
+|Profile Name |Target Use Case |CPU (Req/Lim) |Memory (Req/Lim) |Accelerator
+
+|*Standard*
+|Data exploration, simple ML
+|2 / 4 Cores
+|8GB / 16GB
+|None
+
+|*Training*
+|Deep learning models
+|8 / 16 Cores
+|32GB / 64GB
+|1x NVIDIA GPU
+
+|*Large*
+|LLM Fine-tuning
+|24 / 48 Cores
+|128GB / 256GB
+|2x NVIDIA GPU
+|===
+
+image::rhoai-hardware-profile-creation.png[OpenShift AI Hardware Profile Creation Screen]
+
+---
+
+== 4. Enabling & Storing Hardware Profiles
+
+=== Where is the information stored?
+
+The data is stored as a *Custom Resource (CR)* of kind `HardwareProfile` inside the OpenShift cluster's etcd database. It is not a simple ConfigMap; it is a structured API object that the OpenShift AI operator reads to inject settings into user pods.
+
+=== How to Enable Hardware Profiles
+
+In some versions of OpenShift AI, this feature might be hidden behind a feature flag. To enable it:
+
+. Access the *OpenShift Console* (Administrator view).
+. Find the `OdhDashboardConfig` custom resource.
+. Set the `disableHardwareProfiles` field to `false`.
+. Refresh the OpenShift AI dashboard, and the "Hardware profiles" menu item will appear under Settings.
+
+---
+
+== 5. Using for Accelerators (GPUs/NPUs)
+
+To use a hardware profile for accelerators like NVIDIA or Gaudi, follow this workflow:
+
+. *Install Drivers:* Ensure the NVIDIA GPU Operator (or equivalent) is installed.
+. *Verify Detection:* Check that OpenShift nodes report allocatable resources (e.g., `nvidia.com/gpu: 8`).
+. *Create Profile:*
+** Add a *Resource Identifier* matching the node label (e.g., `nvidia.com/gpu`).
+** Set the *Count* (e.g., allow users to request 1 or 2 GPUs).
+. *Associate with Images (Optional):* You can link a hardware profile to specific *Workbench Images*. For example, you can configure the "PyTorch" image to recommend the "NVIDIA GPU" profile, creating a warning if a user tries to run it on a CPU-only node.
+
+Once configured, a data scientist simply selects "NVIDIA GPU" from a dropdown when creating a workbench, and the system automatically handles the complex Kubernetes scheduling in the background.

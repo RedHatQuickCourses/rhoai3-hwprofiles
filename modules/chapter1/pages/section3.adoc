@@ -1,6 +1,50 @@
-= Section 3
+= Integrating Kueue for Fair-Share Scheduling
+:navtitle: Kueue Integration
+:imagesdir: ../images
 
-* Create multiple copies of this section as needed.
-* Remove any unnecessary sections or chapter pages.
-* Customize the section as appropriate.
-* Ensure that each page contains a manageable amount of content.
+Managing expensive compute resources like GPUs often leads to a "feast or famine" scenario: one team hoards resources they aren't using, while another team waits in a pending state.
+
+*Kueue* solves this by introducing a cloud-native job queuing system that manages quotas, prioritization, and fair sharing across tenants. In Red Hat OpenShift AI (RHOAI), Hardware Profiles serve as the critical bridge between user workloads and this queuing system.
+
+== How the Integration Works
+
+Hardware profiles facilitate resource allocation through specific *Workload allocation strategies*. When creating a profile, you select the "Local Queue" strategy to hand over scheduling control to Kueue.
+
+. The *Administrator* defines a Hardware Profile and selects *Local Queue* as the allocation strategy.
+. The Administrator specifies the target *Local Queue name* (e.g., `default`) and optionally sets a priority.
+. The *User* selects this profile when creating a workbench or deploying a model.
+. *OpenShift AI* automatically applies the specific label (`kueue.x-k8s.io/queue-name`) to the workload.
+. *Kueue* intercepts the workload, validates it against the queue's quota, and schedules it only when resources are available.
+
+image::kueue-workflow-diagram.png[Kueue workflow diagram]
+
+== Three Key Benefits
+
+=== 1. Fair Sharing & Quota Management
+Kueue allows you to define quotas for different teams (Projects). If Team A is not using their GPU quota, Team B can "borrow" it. When Team A returns, they can reclaim their resources based on pre-defined rules.
+
+=== 2. Prioritized Scheduling
+Not all jobs are equal. You can configure profiles that map to different priority classes. A "Critical Training" profile can be configured to jump the queue ahead of a "Standard Exploration" profile.
+
+=== 3. Automated Labeling
+Data scientists do not need to know the name of the queue or how to label their pods. The Hardware Profile abstracts this entirely—they simply select the "Fair Share" profile from the UI.
+
+== Critical Constraints & Best Practices
+
+When enabling Kueue integration, you must adhere to specific architectural rules to avoid scheduling conflicts.
+
+[IMPORTANT]
+.Mutual Exclusivity
+====
+If a hardware profile uses the *Local Queue* strategy, you *cannot* add Node Selectors or Tolerations to that same profile. Placement is handled exclusively by the queue's underlying "Resource Flavors".
+====
+
+* *Workbenches are Non-Preemptive:* Workbenches are interactive environments, not batch jobs. They cannot be suspended and resumed like a training run. Therefore, workbenches must use a local queue associated with a *non-preemptive* ClusterQueue.
+* *Enabling the Feature:* To use this integration, the Cluster Administrator must explicitly enable `disableKueue: false` in the RHOAI Dashboard configuration.
+
+== Summary of the Workflow
+
+. *Install:* Admin installs the Red Hat build of Kueue Operator.
+. *Configure:* Admin sets `disableKueue: false`.
+. *Define:* Admin creates a Hardware Profile, selects "Local Queue", and enters the queue name.
+. *Consume:* Users select the profile; fair sharing happens automatically in the background.

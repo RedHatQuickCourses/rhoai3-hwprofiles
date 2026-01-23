@@ -1,6 +1,174 @@
-= Section 1
+= Lab: Automating the Allocation Engine
+:navtitle: Automation Lab
+:imagesdir: ../images
 
-* Create multiple copies of this section as needed.
-* Remove any unnecessary sections or chapter pages.
-* Customize the section as appropriate.
-* Ensure that each page contains a manageable amount of content.
+== Objective
+In this lab, you will move beyond manual configuration to build an automated, repeatable hardware governance layer. You will use the OpenShift CLI (`oc`) to discover physical assets, lock them down with taints, and expose them to users via governed `HardwareProfile` Custom Resources (CRs).
+
+You will implement two distinct strategies:
+1. **The Isolation Strategy:** Pinning high-value hardware to specific profiles using Taints and Tolerations.
+2. **The Efficiency Strategy:** Enabling fair-share scheduling using Kueue.
+
+== Prerequisites
+* Access to a **Red Hat OpenShift AI 3.2** cluster with `cluster-admin` privileges.
+* The **Node Feature Discovery (NFD)** Operator is installed and active[.
+* The **NVIDIA GPU Operator** is installed (for GPU steps).
+* The **Kueue Operator** is installed, and `disableKueue: false` is set in the `OdhDashboardConfig`.
+
+---
+
+== Part 1: Automated Discovery & Isolation ("The Recon")
+
+First, we must identify our accelerator nodes and apply a "lock" (Taint) so that unauthorized workloads cannot consume them.
+
+.1. Discover Accelerator Nodes
+Run this command to list nodes with NVIDIA GPUs. We use the label `nvidia.com/gpu.present` provided by NFD.
+
+[source,bash]
+----
+# Find nodes with NVIDIA GPUs
+oc get nodes -l nvidia.com/gpu.present=true -o jsonpath='{.items[*.metadata.name}'
+----
+
+.2. Apply the "Lock" (Taint)
+We will taint these nodes. This ensures that *only* pods with the matching toleration (which we will put in our Hardware Profile) can run here.
+
+[source,bash]
+----
+# Replace <node-name> with the output from the previous step
+oc adm taint nodes <node-name> nvidia.com/gpu=true:NoSchedule --overwrite
+----
+* **Effect:** `NoSchedule` means existing pods keep running, but no new pods can enter without the key.
+
+.3. Verify the Lock
+[source,bash]
+----
+oc describe node <node-name> | grep Taints
+# Output should show: nvidia.com/gpu=true:NoSchedule
+----
+
+---
+
+== Part 2: Defining the Profile as Code ("The Blueprint")
+
+Now we create the `HardwareProfile` Custom Resource (CR). Defining this as YAML allows you to version-control your hardware policies (GitOps).
+
+.1. Create the `profile-isolation.yaml` file
+This profile grants access to the "locked" nodes we just created. It includes resource limits to prevent hoarding.
+
+[source,yaml]
+----
+apiVersion: dashboard.opendatahub.io/v1alpha1
+kind: HardwareProfile
+metadata:
+  name: nvidia-a100-isolated
+  namespace: redhat-ods-applications  # Global scope
+spec:
+  displayName: "Exclusive - NVIDIA A100"
+  description: "Guaranteed access to isolated A100 nodes."
+  enabled: true
+  identifiers:
+    - identifier: nvidia.com/gpu
+      displayName: "NVIDIA A100 GPU"
+      defaultCount: 1
+      minCount: 1
+      maxCount: 4
+  resourceLimits:
+    - name: cpu
+      default: "4"
+      max: "8"  # Enforce efficiency 
+    - name: memory
+      default: "16Gi"
+      max: "32Gi"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"  # The "Key" to our Taint
+----
+
+.2. Apply the Profile
+[source,bash]
+----
+oc apply -f profile-isolation.yaml
+----
+
+---
+
+== Part 3: Enabling Fair Share with Kueue ("The Brain")
+
+For general-purpose compute, strict isolation is wasteful. We want teams to share resources dynamically. We will create a second profile that uses **Kueue** for allocation.
+
+[IMPORTANT]
+.Critical Restriction
+====
+You *cannot* combine `tolerations` or `nodeSelectors` with the `LocalQueue` strategy. If you use Kueue, it handles all placement logic via its own Resource Flavors. Do not mix these configurations in the same profile.
+====
+
+.1. Create the `profile-fairshare.yaml` file
+[source,yaml]
+----
+apiVersion: dashboard.opendatahub.io/v1alpha1
+kind: HardwareProfile
+metadata:
+  name: nvidia-a100-fairshare
+  namespace: redhat-ods-applications
+spec:
+  displayName: "Shared - NVIDIA A100 (Queue)"
+  description: "Submit jobs to the fair-share queue. Resources allocated by priority."
+  enabled: true
+  identifiers:
+    - identifier: nvidia.com/gpu
+      displayName: "NVIDIA A100 GPU"
+      defaultCount: 1
+      minCount: 1
+      maxCount: 4
+  allocationStrategy:
+    kind: LocalQueue
+    localQueue:
+      name: "default"  # Must match a LocalQueue in the user's namespace
+----
+
+.2. Apply the Profile
+[source,bash]
+----
+oc apply -f profile-fairshare.yaml
+----
+
+---
+
+== Part 4: Verification ("The Proof")
+
+Verify that your "Allocation Engine" is running by checking the available profiles.
+
+[source,bash]
+----
+oc get hardwareprofiles -n redhat-ods-applications
+----
+
+*Expected Output:*
+[cols="1,1,1", options="header"]
+|===
+|NAME |DISPLAY NAME |ENABLED
+|`nvidia-a100-isolated` |Exclusive - NVIDIA A100 |true
+|`nvidia-a100-fairshare` |Shared - NVIDIA A100 (Queue) |true
+|===
+
+=== Final Test
+1. Log in to the RHOAI Dashboard.
+2. Attempt to create a Workbench.
+3. Verify that both *Exclusive* and *Shared* options appear in the Hardware Profile dropdown.
+4. Select *Shared* and launch a workbench.
+5. In the terminal, check the pod yaml:
+   `oc get pod <pod-name> -o yaml | grep queue-name`
+   *Success:* You should see the label `kueue.x-k8s.io/queue-name: default` automatically applied.
+
+== Summary of Artifacts
+
+To industrialize this setup, commit the following files to your Git repository:
+
+* `nodes-taint-script.sh` (The discovery and tainting logic)
+* `profile-isolation.yaml` (The strict governance policy)
+* `profile-fairshare.yaml` (The dynamic scheduling policy)
+
+You have now codified your infrastructure, ensuring consistent governance across dev, test, and production environments.
