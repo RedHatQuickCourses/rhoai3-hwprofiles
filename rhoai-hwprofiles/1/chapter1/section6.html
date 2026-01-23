@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Day 2 Operations: Governance, Scoping, and Troubleshooting :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="section5.html">
+    <link rel="next" href="section7.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="index.html">Introduction to Hardware Profiles</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section1.html">Automation Lab</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section2.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section3.html">Kueue Integration</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section4.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section5.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="section6.html">Operations &amp; Troubleshooting</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section7.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../chapter2/index.html">Chapter 2</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../chapter2/section1.html">Section 1</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="index.html">Introduction to Hardware Profiles</a></li>
+    <li><a href="section6.html">Operations &amp; Troubleshooting</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Day 2 Operations: Governance, Scoping, and Troubleshooting</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Building the profiles is only step one. To run an "Industrialized" AI platform, you must effectively govern access to these resources and quickly resolve scheduling bottlenecks. This guide covers how to scope profiles to specific teams and troubleshoot common "Pending" state issues.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_1_governance_global_vs_project_scoped_profiles"><a class="anchor" href="#_1_governance_global_vs_project_scoped_profiles"></a>1. Governance: Global vs. Project-Scoped Profiles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Not every team needs access to your most expensive hardware. You can control the visibility of Hardware Profiles by defining where they live in the cluster.</p>
+</div>
+<div class="sect2">
+<h3 id="_global_profiles_public_utility"><a class="anchor" href="#_global_profiles_public_utility"></a>Global Profiles (Public Utility)</h3>
+<div class="paragraph">
+<p>Global profiles are visible to <strong>all users</strong> in the OpenShift AI dashboard. Use these for generic resources (e.g., "Standard CPU", "Shared GPU").</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>How to Configure:</strong> Create the <code>HardwareProfile</code> Custom Resource (CR) in the <strong>dashboard application namespace</strong> (typically <code>redhat-ods-applications</code>).</p>
+</li>
+<li>
+<p><strong>Use Case:</strong> General development, interactive notebooks, introductory training.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_project_scoped_profiles_private_reserve"><a class="anchor" href="#_project_scoped_profiles_private_reserve"></a>Project-Scoped Profiles (Private Reserve)</h3>
+<div class="paragraph">
+<p>Project-scoped profiles are visible <strong>only</strong> to users within a specific Data Science Project. Use these for specialized hardware reserved for advanced teams (e.g., "Finance Team H100").</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>How to Configure:</strong> Create the <code>HardwareProfile</code> CR inside the <strong>user&#8217;s project namespace</strong> (e.g., <code>finance-models-prod</code>).</p>
+</li>
+<li>
+<p><strong>Use Case:</strong> Sensitive workloads, reserved capacity for high-priority projects, hardware with specific regulatory compliance requirements.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_2_troubleshooting_common_issues"><a class="anchor" href="#_2_troubleshooting_common_issues"></a>2. Troubleshooting Common Issues</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When a user selects a profile and their workbench fails to start, the issue usually lies in the handshake between the Profile limits and the Node capacity.</p>
+</div>
+<div class="sect2">
+<h3 id="_scenario_a_the_pending_state_capacity_vs_quota"><a class="anchor" href="#_scenario_a_the_pending_state_capacity_vs_quota"></a>Scenario A: The "Pending" State (Capacity vs. Quota)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Symptom:</strong> The workbench status remains "Pending" indefinitely.</p>
+</li>
+<li>
+<p><strong>Check 1 (Kueue Quota):</strong> If using the <strong>Local Queue</strong> strategy, the project may have exhausted its assigned quota.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><em>Fix:</em> Check the <code>LocalQueue</code> status or increase the <code>ClusterQueue</code> limits.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Check 2 (Physical Capacity):</strong> If using <strong>Node Selectors/Taints</strong>, there may be no physical nodes available with that label.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><em>Fix:</em> Run <code>oc get nodes -l &lt;selector-key&gt;=&lt;selector-value&gt;</code> to verify matching nodes exist and have allocatable capacity.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scenario_b_unschedulable_taint_mismatch"><a class="anchor" href="#_scenario_b_unschedulable_taint_mismatch"></a>Scenario B: "Unschedulable" (Taint Mismatch)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Symptom:</strong> The pod events show <code>0/5 nodes are available: 5 node(s) had taint {nvidia.com/gpu: true}, that the pod didn&#8217;t tolerate.</code></p>
+</li>
+<li>
+<p><strong>Root Cause:</strong> The Node has a Taint, but the Hardware Profile is missing the matching Toleration.</p>
+</li>
+<li>
+<p><strong>Fix:</strong> Edit the Hardware Profile YAML. [cite_start]Add the exact <code>key</code>, <code>value</code>, and <code>effect</code> that matches the Node Taint. [cite: 55]</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scenario_c_profile_not_visible_in_dashboard"><a class="anchor" href="#_scenario_c_profile_not_visible_in_dashboard"></a>Scenario C: Profile Not Visible in Dashboard</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Symptom:</strong> You created the YAML, but the dropdown list is empty.</p>
+</li>
+<li>
+<p><strong>Check 1:</strong> Verify <code>enabled: true</code> is set in the CR spec.</p>
+</li>
+<li>
+<p><strong>Check 2:</strong> Verify the profile is in the correct namespace (<code>redhat-ods-applications</code> for global).</p>
+</li>
+<li>
+<p><strong>Check 3:</strong> Check if the <code>identifiers</code> in the profile match what the Node Feature Discovery (NFD) operator is reporting. [cite_start]If NFD detects <code>nvidia.com/gpu</code> but your profile requests <code>nvidia.com/mig-1g.5gb</code>, the system may filter it out if no nodes report that specific MIG slice. [cite: 12-13]</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_3_verification_auditing"><a class="anchor" href="#_3_verification_auditing"></a>3. Verification &amp; Auditing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To ensure your governance rules are working, you can inspect the resulting Pod specification.</p>
+</div>
+<div class="listingblock">
+<div class="title">Command to inspect a running workbench pod</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pod &lt;workbench-pod-name&gt; -o yaml</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Verify Limits:</strong> Look under <code>spec.containers.resources</code>. Do the requests match your profile&#8217;s defaults?</p>
+</li>
+<li>
+<p><strong>Verify Tolerations:</strong> Look under <code>spec.tolerations</code>. Is the "magic key" present?</p>
+</li>
+<li>
+<p><strong>Verify Queue:</strong> Look for the label <code>kueue.x-k8s.io/queue-name</code>. [cite_start]Is it pointing to the correct Local Queue? [cite: 27]</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By mastering these operational checks, you move from "setting up hardware" to "delivering a reliable service."</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="section5.html">GPU Sharing &amp; MIG</a></span>
+  <span class="next"><a href="section7.html">Course Summary</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

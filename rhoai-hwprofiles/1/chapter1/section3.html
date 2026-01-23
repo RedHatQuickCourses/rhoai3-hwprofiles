@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Integrating Kueue for Fair-Share Scheduling :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="section2.html">
+    <link rel="next" href="section4.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="index.html">Introduction to Hardware Profiles</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section1.html">Automation Lab</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section2.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="section3.html">Kueue Integration</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section4.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section5.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section6.html">Operations &amp; Troubleshooting</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section7.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../chapter2/index.html">Chapter 2</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../chapter2/section1.html">Section 1</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="index.html">Introduction to Hardware Profiles</a></li>
+    <li><a href="section3.html">Kueue Integration</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Integrating Kueue for Fair-Share Scheduling</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Managing expensive compute resources like GPUs often leads to a "feast or famine" scenario: one team hoards resources they aren&#8217;t using, while another team waits in a pending state.</p>
+</div>
+<div class="paragraph">
+<p><strong>Kueue</strong> solves this by introducing a cloud-native job queuing system that manages quotas, prioritization, and fair sharing across tenants. In Red Hat OpenShift AI (RHOAI), Hardware Profiles serve as the critical bridge between user workloads and this queuing system.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_the_integration_works"><a class="anchor" href="#_how_the_integration_works"></a>How the Integration Works</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Hardware profiles facilitate resource allocation through specific <strong>Workload allocation strategies</strong>. When creating a profile, you select the "Local Queue" strategy to hand over scheduling control to Kueue.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The <strong>Administrator</strong> defines a Hardware Profile and selects <strong>Local Queue</strong> as the allocation strategy.</p>
+</li>
+<li>
+<p>The Administrator specifies the target <strong>Local Queue name</strong> (e.g., <code>default</code>) and optionally sets a priority.</p>
+</li>
+<li>
+<p>The <strong>User</strong> selects this profile when creating a workbench or deploying a model.</p>
+</li>
+<li>
+<p><strong>OpenShift AI</strong> automatically applies the specific label (<code>kueue.x-k8s.io/queue-name</code>) to the workload.</p>
+</li>
+<li>
+<p><strong>Kueue</strong> intercepts the workload, validates it against the queue&#8217;s quota, and schedules it only when resources are available.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock unresolved">
+<div class="content">
+<img src="kueue-workflow-diagram.png" alt="Kueue workflow diagram">
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_three_key_benefits"><a class="anchor" href="#_three_key_benefits"></a>Three Key Benefits</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_1_fair_sharing_quota_management"><a class="anchor" href="#_1_fair_sharing_quota_management"></a>1. Fair Sharing &amp; Quota Management</h3>
+<div class="paragraph">
+<p>Kueue allows you to define quotas for different teams (Projects). If Team A is not using their GPU quota, Team B can "borrow" it. When Team A returns, they can reclaim their resources based on pre-defined rules.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_2_prioritized_scheduling"><a class="anchor" href="#_2_prioritized_scheduling"></a>2. Prioritized Scheduling</h3>
+<div class="paragraph">
+<p>Not all jobs are equal. You can configure profiles that map to different priority classes. A "Critical Training" profile can be configured to jump the queue ahead of a "Standard Exploration" profile.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_automated_labeling"><a class="anchor" href="#_3_automated_labeling"></a>3. Automated Labeling</h3>
+<div class="paragraph">
+<p>Data scientists do not need to know the name of the queue or how to label their pods. The Hardware Profile abstracts this entirely—they simply select the "Fair Share" profile from the UI.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_critical_constraints_best_practices"><a class="anchor" href="#_critical_constraints_best_practices"></a>Critical Constraints &amp; Best Practices</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When enabling Kueue integration, you must adhere to specific architectural rules to avoid scheduling conflicts.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Mutual Exclusivity</div>
+<div class="paragraph">
+<p>If a hardware profile uses the <strong>Local Queue</strong> strategy, you <strong>cannot</strong> add Node Selectors or Tolerations to that same profile. Placement is handled exclusively by the queue&#8217;s underlying "Resource Flavors".</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Workbenches are Non-Preemptive:</strong> Workbenches are interactive environments, not batch jobs. They cannot be suspended and resumed like a training run. Therefore, workbenches must use a local queue associated with a <strong>non-preemptive</strong> ClusterQueue.</p>
+</li>
+<li>
+<p><strong>Enabling the Feature:</strong> To use this integration, the Cluster Administrator must explicitly enable <code>disableKueue: false</code> in the RHOAI Dashboard configuration.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_summary_of_the_workflow"><a class="anchor" href="#_summary_of_the_workflow"></a>Summary of the Workflow</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Install:</strong> Admin installs the Red Hat build of Kueue Operator.</p>
+</li>
+<li>
+<p><strong>Configure:</strong> Admin sets <code>disableKueue: false</code>.</p>
+</li>
+<li>
+<p><strong>Define:</strong> Admin creates a Hardware Profile, selects "Local Queue", and enters the queue name.</p>
+</li>
+<li>
+<p><strong>Consume:</strong> Users select the profile; fair sharing happens automatically in the background.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="section2.html">Hardware Profiles Guide</a></span>
+  <span class="next"><a href="section4.html">Taints &amp; Tolerations</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

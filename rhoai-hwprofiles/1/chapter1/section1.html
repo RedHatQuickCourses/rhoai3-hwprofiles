@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Lab: Automating the Allocation Engine :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="index.html">
+    <link rel="next" href="section2.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="index.html">Introduction to Hardware Profiles</a>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="section1.html">Automation Lab</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section2.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section3.html">Kueue Integration</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section4.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section5.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section6.html">Operations &amp; Troubleshooting</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="section7.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../chapter2/index.html">Chapter 2</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../chapter2/section1.html">Section 1</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="index.html">Introduction to Hardware Profiles</a></li>
+    <li><a href="section1.html">Automation Lab</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Lab: Automating the Allocation Engine</h1>
+<div class="sect1">
+<h2 id="_objective"><a class="anchor" href="#_objective"></a>Objective</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this lab, you will move beyond manual configuration to build an automated, repeatable hardware governance layer. You will use the OpenShift CLI (<code>oc</code>) to discover physical assets, lock them down with taints, and expose them to users via governed <code>HardwareProfile</code> Custom Resources (CRs).</p>
+</div>
+<div class="paragraph">
+<p>You will implement two distinct strategies:
+1. <strong>The Isolation Strategy:</strong> Pinning high-value hardware to specific profiles using Taints and Tolerations.
+2. <strong>The Efficiency Strategy:</strong> Enabling fair-share scheduling using Kueue.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Access to a <strong>Red Hat OpenShift AI 3.2</strong> cluster with <code>cluster-admin</code> privileges.</p>
+</li>
+<li>
+<p>The <strong>Node Feature Discovery (NFD)</strong> Operator is installed and active[.</p>
+</li>
+<li>
+<p>The <strong>NVIDIA GPU Operator</strong> is installed (for GPU steps).</p>
+</li>
+<li>
+<p>The <strong>Kueue Operator</strong> is installed, and <code>disableKueue: false</code> is set in the <code>OdhDashboardConfig</code>.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_1_automated_discovery_isolation_the_recon"><a class="anchor" href="#_part_1_automated_discovery_isolation_the_recon"></a>Part 1: Automated Discovery &amp; Isolation ("The Recon")</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First, we must identify our accelerator nodes and apply a "lock" (Taint) so that unauthorized workloads cannot consume them.</p>
+</div>
+<div class="paragraph">
+<div class="title">1. Discover Accelerator Nodes</div>
+<p>Run this command to list nodes with NVIDIA GPUs. We use the label <code>nvidia.com/gpu.present</code> provided by NFD.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Find nodes with NVIDIA GPUs
+oc get nodes -l nvidia.com/gpu.present=true -o jsonpath='{.items[*.metadata.name}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">2. Apply the "Lock" (Taint)</div>
+<p>We will taint these nodes. This ensures that <strong>only</strong> pods with the matching toleration (which we will put in our Hardware Profile) can run here.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Replace &lt;node-name&gt; with the output from the previous step
+oc adm taint nodes &lt;node-name&gt; nvidia.com/gpu=true:NoSchedule --overwrite</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Effect:</strong> <code>NoSchedule</code> means existing pods keep running, but no new pods can enter without the key.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">3. Verify the Lock</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc describe node &lt;node-name&gt; | grep Taints
+# Output should show: nvidia.com/gpu=true:NoSchedule</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_2_defining_the_profile_as_code_the_blueprint"><a class="anchor" href="#_part_2_defining_the_profile_as_code_the_blueprint"></a>Part 2: Defining the Profile as Code ("The Blueprint")</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now we create the <code>HardwareProfile</code> Custom Resource (CR). Defining this as YAML allows you to version-control your hardware policies (GitOps).</p>
+</div>
+<div class="paragraph">
+<div class="title">1. Create the <code>profile-isolation.yaml</code> file</div>
+<p>This profile grants access to the "locked" nodes we just created. It includes resource limits to prevent hoarding.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: dashboard.opendatahub.io/v1alpha1
+kind: HardwareProfile
+metadata:
+  name: nvidia-a100-isolated
+  namespace: redhat-ods-applications  # Global scope
+spec:
+  displayName: "Exclusive - NVIDIA A100"
+  description: "Guaranteed access to isolated A100 nodes."
+  enabled: true
+  identifiers:
+    - identifier: nvidia.com/gpu
+      displayName: "NVIDIA A100 GPU"
+      defaultCount: 1
+      minCount: 1
+      maxCount: 4
+  resourceLimits:
+    - name: cpu
+      default: "4"
+      max: "8"  # Enforce efficiency
+    - name: memory
+      default: "16Gi"
+      max: "32Gi"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"  # The "Key" to our Taint</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">2. Apply the Profile</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f profile-isolation.yaml</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_3_enabling_fair_share_with_kueue_the_brain"><a class="anchor" href="#_part_3_enabling_fair_share_with_kueue_the_brain"></a>Part 3: Enabling Fair Share with Kueue ("The Brain")</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For general-purpose compute, strict isolation is wasteful. We want teams to share resources dynamically. We will create a second profile that uses <strong>Kueue</strong> for allocation.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Critical Restriction</div>
+<div class="paragraph">
+<p>You <strong>cannot</strong> combine <code>tolerations</code> or <code>nodeSelectors</code> with the <code>LocalQueue</code> strategy. If you use Kueue, it handles all placement logic via its own Resource Flavors. Do not mix these configurations in the same profile.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">1. Create the <code>profile-fairshare.yaml</code> file</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: dashboard.opendatahub.io/v1alpha1
+kind: HardwareProfile
+metadata:
+  name: nvidia-a100-fairshare
+  namespace: redhat-ods-applications
+spec:
+  displayName: "Shared - NVIDIA A100 (Queue)"
+  description: "Submit jobs to the fair-share queue. Resources allocated by priority."
+  enabled: true
+  identifiers:
+    - identifier: nvidia.com/gpu
+      displayName: "NVIDIA A100 GPU"
+      defaultCount: 1
+      minCount: 1
+      maxCount: 4
+  allocationStrategy:
+    kind: LocalQueue
+    localQueue:
+      name: "default"  # Must match a LocalQueue in the user's namespace</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">2. Apply the Profile</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f profile-fairshare.yaml</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_4_verification_the_proof"><a class="anchor" href="#_part_4_verification_the_proof"></a>Part 4: Verification ("The Proof")</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Verify that your "Allocation Engine" is running by checking the available profiles.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get hardwareprofiles -n redhat-ods-applications</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Expected Output:</strong></p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">NAME</th>
+<th class="tableblock halign-left valign-top">DISPLAY NAME</th>
+<th class="tableblock halign-left valign-top">ENABLED</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>nvidia-a100-isolated</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclusive - NVIDIA A100</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>nvidia-a100-fairshare</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shared - NVIDIA A100 (Queue)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="_final_test"><a class="anchor" href="#_final_test"></a>Final Test</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Log in to the RHOAI Dashboard.</p>
+</li>
+<li>
+<p>Attempt to create a Workbench.</p>
+</li>
+<li>
+<p>Verify that both <strong>Exclusive</strong> and <strong>Shared</strong> options appear in the Hardware Profile dropdown.</p>
+</li>
+<li>
+<p>Select <strong>Shared</strong> and launch a workbench.</p>
+</li>
+<li>
+<p>In the terminal, check the pod yaml:
+<code>oc get pod &lt;pod-name&gt; -o yaml | grep queue-name</code>
+<strong>Success:</strong> You should see the label <code>kueue.x-k8s.io/queue-name: default</code> automatically applied.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_summary_of_artifacts"><a class="anchor" href="#_summary_of_artifacts"></a>Summary of Artifacts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To industrialize this setup, commit the following files to your Git repository:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>nodes-taint-script.sh</code> (The discovery and tainting logic)</p>
+</li>
+<li>
+<p><code>profile-isolation.yaml</code> (The strict governance policy)</p>
+</li>
+<li>
+<p><code>profile-fairshare.yaml</code> (The dynamic scheduling policy)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You have now codified your infrastructure, ensuring consistent governance across dev, test, and production environments.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html">Introduction to Hardware Profiles</a></span>
+  <span class="next"><a href="section2.html">Hardware Profiles Guide</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
