@@ -2,8 +2,6 @@
 :navtitle: Introduction to Hardware Profiles
 :imagesdir: ../images
 
-== The Compute Supply Chain: From Hoarding to Governance
-
 *Stop lighting your GPU budget on fire. Start building an allocation engine.*
 
 In the modern AI enterprise, silicon is the new gold. Yet, in many organizations, the consumption of this resource is treated like a "free-for-all." Data scientists hoard expensive GPUs "just in case," leaving them idle while high-priority training jobs sit in pending states. Development teams fight over scraps, and administrators are buried in tickets, manually pinning pods to specific nodes like air traffic controllers in a storm.
@@ -26,8 +24,6 @@ Public APIs are simple but drain your wallet with unpredictable fees. Basic Kube
 The Red Hat OpenShift AI (RHOAI) Hardware Profile is the "vending machine" for your compute power. It transforms complex Kubernetes constraints—Taints, Tolerations, and Resource Limits—into a simple, governed menu for your users.
 
 Hardware Profiles serve as the abstraction layer between the complex physical reality of your data center (MIG partitions, specific GPU architectures) and the data scientists who just want to do their work.
-
-.Hardware Profiles: The Bridge Between Silicon and Science
 
 == Three Pillars of Value
 

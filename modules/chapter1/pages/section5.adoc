@@ -30,15 +30,15 @@ You have two primary mechanisms for sharing NVIDIA GPUs in OpenShift AI. Your Ha
 
 == Strategy 1: Time-Slicing (The "Oversubscription" Model)
 
-[cite_start]Time-slicing allows multiple pods to share a single GPU by taking turns (interleaving) on the compute engine[cite: 3084]. This is ideal for interactive workbenches where users spend most of their time coding and only bursts of time executing cells.
+Time-slicing allows multiple pods to share a single GPU by taking turns (interleaving) on the compute engine. This is ideal for interactive workbenches where users spend most of their time coding and only bursts of time executing cells.
 
 === How it Works
 The NVIDIA GPU Operator advertises a single physical GPU as multiple "replicas" (e.g., 1 GPU appears as 4).
 
 === Configuration Steps
 
-. [cite_start]*Enable Time-Slicing:* Create a `ConfigMap` in the GPU Operator namespace defining the replicas (e.g., 4 slices per GPU)[cite: 3107].
-. [cite_start]*Update Cluster Policy:* Configure the GPU Operator to read this map[cite: 3136].
+. *Enable Time-Slicing:* Create a `ConfigMap` in the GPU Operator namespace defining the replicas (e.g., 4 slices per GPU).
+. *Update Cluster Policy:* Configure the GPU Operator to read this map.
 . *Create the Hardware Profile:*
 +
 In this scenario, the resource identifier remains `nvidia.com/gpu`. The "magic" happens at the node level. You do not need a special identifier in the profile, but you should name it clearly so users know it is shared.
@@ -64,7 +64,7 @@ spec:
 
 [IMPORTANT]
 ====
-With Time-Slicing, memory is shared. If one user consumes all VRAM, other users on the same GPU will crash (OOM). [cite_start]Always set strict `resourceLimits` in your profile to mitigate this risk[cite: 3090].
+With Time-Slicing, memory is shared. If one user consumes all VRAM, other users on the same GPU will crash (OOM). Always set strict `resourceLimits` in your profile to mitigate this risk.
 ====
 
 ---

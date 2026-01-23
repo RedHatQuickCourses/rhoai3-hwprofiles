@@ -1,0 +1,74 @@
+= Beyond the Basics: Hardware Profile Strategy Workshop
+:navtitle: Strategy Workshop
+:imagesdir: ../images
+
+You now know *how* to build Hardware Profiles. The next question is: *What* should you build?
+
+An "Industrialized" AI platform isn't just about connecting wires; it's about solving business problems like cost containment, regulatory compliance, and team governance. In this design workshop, we will explore four advanced architectural patterns that solve common "Day 2" challenges.
+
+image::beyond-basics.png[align="center", title="Advanced Hardware Profile Strategies: Beyond the Basics"]
+
+== Scenario 1: The "Efficiency Booster"
+*The Challenge:* Your data scientists are complaining about slow training times, yet your expensive GPUs are showing high memory usage but low compute utilization.
+*The Root Cause:* Users are requesting GPU nodes just to get the large RAM (128GB+) needed for data preparation (Pandas, Ray, Spark), locking up accelerators they aren't actually using.
+
+=== The Strategy: "High-Mem / Zero-GPU" Profile
+Create a profile specifically designed to offload data prep from your accelerator fleet.
+
+* **Configuration:**
+** `cpu`: Moderate (e.g., 4-8 cores)
+** `memory`: High (e.g., 64GB - 128GB)
+** `identifiers`: **None** (Strictly enforce 0 GPUs)
+* **The Win:** You force memory-hungry, non-accelerated work onto cheaper CPU nodes, freeing up your H100s for actual model training.
+
+---
+
+== Scenario 2: The "Security Vault"
+*The Challenge:* Your organization handles sensitive data (PII, HIPAA, PCI). Your security team refuses to let the "Finance" model run on the same physical node as the "Intern's" experiment.
+*The Root Cause:* Standard scheduling allows workloads to float to any available node.
+
+=== The Strategy: "The Compliance Vault"
+Use the mathematical certainty of Taints and Tolerations to create a secure zone.
+
+* **Implementation:**
+. *Physical Layer:* Taint specific nodes with `classification=restricted:NoSchedule`.
+. *Logical Layer:* Create a "Restricted Data" Hardware Profile that includes the matching **Toleration**.
+* **The Win:** Sensitive workloads can *only* land on the audited, secure hardware. General workloads are physically repelled.
+
+---
+
+== Scenario 3: The "Governance Gate"
+*The Challenge:* You purchased a specific rack of H100s exclusively for your "Generative AI Research" team. However, standard users keep seeing it in the menu, trying to request it, and getting frustrated by "Quota Exceeded" errors.
+*The Root Cause:* Global visibility creates noise and confusion.
+
+=== The Strategy: "The VIP Room"
+Move from Global Profiles to **Project-Scoped Profiles**.
+
+* **Implementation:**
+** Instead of creating the `HardwareProfile` CR in the global dashboard namespace (`redhat-ods-applications`), create it directly inside the user's namespace (e.g., `research-team-prod`).
+* **The Win:** The "H100 Research" profile appears in the dropdown *only* for that specific team. To everyone else, the resource doesn't even exist.
+
+---
+
+== Scenario 4: The "Cost Controller"
+*The Challenge:* In a self-service environment, costs spiral because users default to "Max Settings." A developer spins up a workbench for a simple smoke test but requests 64 CPUs "just to be safe," starving the cluster.
+*The Root Cause:* Lack of guardrails on resource requests.
+
+=== The Strategy: "The Resource Cap"
+Don't just set defaults; enforce strict ceilings.
+
+* **Configuration:**
+** Define a `max` value for every resource in the profile.
+** Example: "Standard Notebook" -> `cpu: { default: "2", max: "4" }`.
+* **The Win:** Even if a user *tries* to request 64 cores in the YAML, the Hardware Profile physically prevents the pod from being admitted. You gain predictable capacity planning.
+
+== Workshop Summary
+
+| Scenario | Strategy Name | Key Configuration |
+| :--- | :--- | :--- |
+| **Data Prep Hoarding** | Efficiency Booster | High RAM / No GPU Identifiers |
+| **Sensitive Data** | Security Vault | Taints + Profile Tolerations |
+| **Exclusive Hardware** | Governance Gate | Namespace-Scoped CRs |
+| **Runaway Costs** | Cost Controller | `resourceLimits: max` |
+
+Apply these patterns to your platform to move from "functioning" to "optimized."
