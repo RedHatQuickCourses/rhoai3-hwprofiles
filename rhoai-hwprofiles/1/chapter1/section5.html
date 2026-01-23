@@ -65,6 +65,9 @@
     <a class="nav-link" href="section1.html">Automation Lab</a>
   </li>
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section8.html">Strategy Workshop</a>
+  </li>
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="section7.html">Course Summary</a>
   </li>
 </ul>
@@ -158,7 +161,7 @@
 <h2 id="_strategy_1_time_slicing_the_oversubscription_model"><a class="anchor" href="#_strategy_1_time_slicing_the_oversubscription_model"></a>Strategy 1: Time-Slicing (The "Oversubscription" Model)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>[cite_start]Time-slicing allows multiple pods to share a single GPU by taking turns (interleaving) on the compute engine[cite: 3084]. This is ideal for interactive workbenches where users spend most of their time coding and only bursts of time executing cells.</p>
+<p>Time-slicing allows multiple pods to share a single GPU by taking turns (interleaving) on the compute engine. This is ideal for interactive workbenches where users spend most of their time coding and only bursts of time executing cells.</p>
 </div>
 <div class="sect2">
 <h3 id="_how_it_works"><a class="anchor" href="#_how_it_works"></a>How it Works</h3>
@@ -171,10 +174,10 @@
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong class="cite_start">Enable Time-Slicing:</strong> Create a <code>ConfigMap</code> in the GPU Operator namespace defining the replicas (e.g., 4 slices per GPU)[cite: 3107].</p>
+<p><strong>Enable Time-Slicing:</strong> Create a <code>ConfigMap</code> in the GPU Operator namespace defining the replicas (e.g., 4 slices per GPU).</p>
 </li>
 <li>
-<p><strong class="cite_start">Update Cluster Policy:</strong> Configure the GPU Operator to read this map[cite: 3136].</p>
+<p><strong>Update Cluster Policy:</strong> Configure the GPU Operator to read this map.</p>
 </li>
 <li>
 <p><strong>Create the Hardware Profile:</strong></p>
@@ -211,7 +214,7 @@ spec:
 </td>
 <td class="content">
 <div class="paragraph">
-<p>With Time-Slicing, memory is shared. If one user consumes all VRAM, other users on the same GPU will crash (OOM). [cite_start]Always set strict <code>resourceLimits</code> in your profile to mitigate this risk[cite: 3090].</p>
+<p>With Time-Slicing, memory is shared. If one user consumes all VRAM, other users on the same GPU will crash (OOM). Always set strict <code>resourceLimits</code> in your profile to mitigate this risk.</p>
 </div>
 </td>
 </tr>

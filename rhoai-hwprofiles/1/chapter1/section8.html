@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Beyond the Basics: Hardware Profile Strategy Workshop :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="section1.html">
+    <link rel="next" href="section7.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section2.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section5.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section4.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section3.html">Kueue Integration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section6.html">Operations &amp; Troubleshooting</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section1.html">Automation Lab</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="section8.html">Strategy Workshop</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section7.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="section8.html">Strategy Workshop</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Beyond the Basics: Hardware Profile Strategy Workshop</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>You now know <strong>how</strong> to build Hardware Profiles. The next question is: <strong>What</strong> should you build?</p>
+</div>
+<div class="paragraph">
+<p>An "Industrialized" AI platform isn&#8217;t just about connecting wires; it&#8217;s about solving business problems like cost containment, regulatory compliance, and team governance. In this design workshop, we will explore four advanced architectural patterns that solve common "Day 2" challenges.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img src="_images/beyond-basics.png" alt="beyond basics">
+</div>
+<div class="title">Figure 1. Advanced Hardware Profile Strategies: Beyond the Basics</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scenario_1_the_efficiency_booster"><a class="anchor" href="#_scenario_1_the_efficiency_booster"></a>Scenario 1: The "Efficiency Booster"</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>The Challenge:</strong> Your data scientists are complaining about slow training times, yet your expensive GPUs are showing high memory usage but low compute utilization.
+<strong>The Root Cause:</strong> Users are requesting GPU nodes just to get the large RAM (128GB+) needed for data preparation (Pandas, Ray, Spark), locking up accelerators they aren&#8217;t actually using.</p>
+</div>
+<div class="sect2">
+<h3 id="_the_strategy_high_mem_zero_gpu_profile"><a class="anchor" href="#_the_strategy_high_mem_zero_gpu_profile"></a>The Strategy: "High-Mem / Zero-GPU" Profile</h3>
+<div class="paragraph">
+<p>Create a profile specifically designed to offload data prep from your accelerator fleet.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Configuration:</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cpu</code>: Moderate (e.g., 4-8 cores)</p>
+</li>
+<li>
+<p><code>memory</code>: High (e.g., 64GB - 128GB)</p>
+</li>
+<li>
+<p><code>identifiers</code>: <strong>None</strong> (Strictly enforce 0 GPUs)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>The Win:</strong> You force memory-hungry, non-accelerated work onto cheaper CPU nodes, freeing up your H100s for actual model training.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scenario_2_the_security_vault"><a class="anchor" href="#_scenario_2_the_security_vault"></a>Scenario 2: The "Security Vault"</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>The Challenge:</strong> Your organization handles sensitive data (PII, HIPAA, PCI). Your security team refuses to let the "Finance" model run on the same physical node as the "Intern&#8217;s" experiment.
+<strong>The Root Cause:</strong> Standard scheduling allows workloads to float to any available node.</p>
+</div>
+<div class="sect2">
+<h3 id="_the_strategy_the_compliance_vault"><a class="anchor" href="#_the_strategy_the_compliance_vault"></a>The Strategy: "The Compliance Vault"</h3>
+<div class="paragraph">
+<p>Use the mathematical certainty of Taints and Tolerations to create a secure zone.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Implementation:</strong></p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Physical Layer:</strong> Taint specific nodes with <code>classification=restricted:NoSchedule</code>.</p>
+</li>
+<li>
+<p><strong>Logical Layer:</strong> Create a "Restricted Data" Hardware Profile that includes the matching <strong>Toleration</strong>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>The Win:</strong> Sensitive workloads can <strong>only</strong> land on the audited, secure hardware. General workloads are physically repelled.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scenario_3_the_governance_gate"><a class="anchor" href="#_scenario_3_the_governance_gate"></a>Scenario 3: The "Governance Gate"</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>The Challenge:</strong> You purchased a specific rack of H100s exclusively for your "Generative AI Research" team. However, standard users keep seeing it in the menu, trying to request it, and getting frustrated by "Quota Exceeded" errors.
+<strong>The Root Cause:</strong> Global visibility creates noise and confusion.</p>
+</div>
+<div class="sect2">
+<h3 id="_the_strategy_the_vip_room"><a class="anchor" href="#_the_strategy_the_vip_room"></a>The Strategy: "The VIP Room"</h3>
+<div class="paragraph">
+<p>Move from Global Profiles to <strong>Project-Scoped Profiles</strong>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Implementation:</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Instead of creating the <code>HardwareProfile</code> CR in the global dashboard namespace (<code>redhat-ods-applications</code>), create it directly inside the user&#8217;s namespace (e.g., <code>research-team-prod</code>).</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>The Win:</strong> The "H100 Research" profile appears in the dropdown <strong>only</strong> for that specific team. To everyone else, the resource doesn&#8217;t even exist.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scenario_4_the_cost_controller"><a class="anchor" href="#_scenario_4_the_cost_controller"></a>Scenario 4: The "Cost Controller"</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>The Challenge:</strong> In a self-service environment, costs spiral because users default to "Max Settings." A developer spins up a workbench for a simple smoke test but requests 64 CPUs "just to be safe," starving the cluster.
+<strong>The Root Cause:</strong> Lack of guardrails on resource requests.</p>
+</div>
+<div class="sect2">
+<h3 id="_the_strategy_the_resource_cap"><a class="anchor" href="#_the_strategy_the_resource_cap"></a>The Strategy: "The Resource Cap"</h3>
+<div class="paragraph">
+<p>Don&#8217;t just set defaults; enforce strict ceilings.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Configuration:</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Define a <code>max</code> value for every resource in the profile.</p>
+</li>
+<li>
+<p>Example: "Standard Notebook" &#8594; <code>cpu: { default: "2", max: "4" }</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>The Win:</strong> Even if a user <strong>tries</strong> to request 64 cores in the YAML, the Hardware Profile physically prevents the pod from being admitted. You gain predictable capacity planning.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_workshop_summary"><a class="anchor" href="#_workshop_summary"></a>Workshop Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>| Scenario | Strategy Name | Key Configuration |
+| :--- | :--- | :--- |
+| <strong>Data Prep Hoarding</strong> | Efficiency Booster | High RAM / No GPU Identifiers |
+| <strong>Sensitive Data</strong> | Security Vault | Taints + Profile Tolerations |
+| <strong>Exclusive Hardware</strong> | Governance Gate | Namespace-Scoped CRs |
+| <strong>Runaway Costs</strong> | Cost Controller | <code>resourceLimits: max</code> |</p>
+</div>
+<div class="paragraph">
+<p>Apply these patterns to your platform to move from "functioning" to "optimized."</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="section1.html">Automation Lab</a></span>
+  <span class="next"><a href="section7.html">Course Summary</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
