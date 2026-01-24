@@ -27,7 +27,7 @@ Run this command to list nodes with NVIDIA GPUs. We use the label `nvidia.com/gp
 [source,bash]
 ----
 # Find nodes with NVIDIA GPUs
-oc get nodes -l nvidia.com/gpu.present=true -o jsonpath='{.items[*.metadata.name}'
+oc get nodes -l nvidia.com/gpu.present=true -o
 ----
 
 .2. Apply the "Lock" (Taint)
@@ -36,7 +36,7 @@ We will taint these nodes. This ensures that *only* pods with the matching toler
 [source,bash]
 ----
 # Replace <node-name> with the output from the previous step
-oc adm taint nodes <node-name> nvidia.com/gpu=true:NoSchedule --overwrite
+oc adm taint nodes nvidia.com/gpu=true:NoSchedule --overwrite
 ----
 * **Effect:** `NoSchedule` means existing pods keep running, but no new pods can enter without the key.
 
