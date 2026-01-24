@@ -172,3 +172,42 @@ To industrialize this setup, commit the following files to your Git repository:
 * `profile-fairshare.yaml` (The dynamic scheduling policy)
 
 You have now codified your infrastructure, ensuring consistent governance across dev, test, and production environments.
+
+
+
+
+
+
+
+cat <<EOF | oc apply -f -
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: xsmall
+  namespace: redhat-ods-applications
+  annotations:
+    opendatahub.io/display-name: "Tier 1 - small"
+    opendatahub.io/description: "Low-intensity workload: 2-4 CPUs, 4-8GiB RAM."
+    opendatahub.io/dashboard-feature-visibility: '["workbench","model-serving"]'
+    opendatahub.io/disabled: "false"
+spec:
+  enabled: true
+  identifiers:
+    - identifier: cpu
+      displayName: CPU
+      resourceType: CPU
+      defaultCount: 2
+      minCount: 1
+      maxCount: 4
+    - identifier: memory
+      displayName: Memory
+      resourceType: Memory
+      defaultCount: 4Gi
+      minCount: 2Gi
+      maxCount: 8Gi
+EOF
+
+
+apiVersion: infrastructure.opendatahub.io/v1 
+kind: HardwareProfile metadata: name: 
+training-dedicated-a100 namespace: redhat-ods-applications annotations: opendatahub.io/display-name: "Training: Dedicated A100" opendatahub.io/description: "Full A100 access. Reserved for model training." opendatahub.io/dashboard-feature-visibility: '["workbench","pipelines"]' spec: enabled: true identifiers: - { identifier: "nvidia.com/gpu", displayName: "A100 GPU", resourceType: Accelerator, defaultCount: 1, minCount: 1, maxCount: 8 } - { identifier: cpu, displayName: CPU, resourceType: CPU, defaultCount: 16, minCount: 8, maxCount: 32 } - { identifier: memory, displayName: Memory, resourceType: Memory, defaultCount: 128Gi, minCount: 64Gi, maxCount: 256Gi }
