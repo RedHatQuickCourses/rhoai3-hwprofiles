@@ -1,0 +1,243 @@
+
+# oc label namespace my-ai-project kueue.x-k8s.io/ignore-separator=true
+
+oc new-project my-ai-project 2>/dev/null || oc project my-ai-project
+oc label namespace my-ai-project kueue.x-k8s.io/ignore-separator=true --overwrite
+
+
+# 1. Create and label the namespace first
+oc new-project my-ai-project 2>/dev/null || oc project my-ai-project
+oc label namespace my-ai-project kueue.x-k8s.io/ignore-separator=true --overwrite
+
+# 2. Apply the corrected Kueue resources
+cat <<EOF | oc apply -f -
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: cluster-queue
+spec:
+  namespaceSelector: {} 
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"] # FIX: This field is now required
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: "cpu"
+        nominalQuota: 4 # Set this to a small amount to "watch it work"
+      - name: "memory"
+        nominalQuota: 8Gi
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: user-queue
+  namespace: my-ai-project
+spec:
+  clusterQueue: cluster-queue
+EOF
+
+
+
+oc get clusterqueue,localqueue -n my-ai-project
+oc get workloads -n my-ai-project
+
+# Get the specific workload name from the previous step
+oc describe workload <workload-name> -n my-ai-project
+
+oc apply -f - <<EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: test-job-2-
+  namespace: my-ai-project
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: "2" # Total (3+2) will exceed your quota of 4
+      restartPolicy: Never
+EOF
+
+
+----
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gpu-training-job
+  namespace: my-ai-project
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue # This is the magic link
+spec:
+  template:
+    spec:
+      containers:
+      - name: training
+        image: my-gpu-image
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      restartPolicy: Never
+
+
+
+cat <<EOF | oc apply -f -
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: cluster-queue
+spec:
+  namespaceSelector: {} 
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"] # FIX: This field is now required
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: "cpu"
+        nominalQuota: 4 # Set this to a small amount to "watch it work"
+      - name: "memory"
+        nominalQuota: 8Gi
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: user-queue
+  namespace: deploy-hwprofiles
+spec:
+  clusterQueue: cluster-queue
+EOF
+
+
+
+cat <<EOF | oc apply -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-job-1
+  namespace: deploy-hwprofiles
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: "3"
+      restartPolicy: Never
+EOF
+
+
+cat <<EOF | oc apply -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-job-2
+  namespace: deploy-hwprofiles
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: "2" # Total (3+2) will exceed your quota of 4
+      restartPolicy: Never
+EOF
+
+
+HI PRI
+
+cat <<EOF | oc apply -f -
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: vip-priority
+value: 1000
+description: "High priority for production AI jobs"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: standard-priority
+value: 100
+description: "Standard priority for development jobs"
+EOF
+
+
+oc patch clusterqueue cluster-queue --type merge -p '{"spec": {"preemption": {"withinClusterQueue": "LowerPriority"}}}'
+
+cat <<EOF | oc apply -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: low-priority-job
+  namespace: deploy-hwprofiles
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+    kueue.x-k8s.io/priority-class: standard-priority
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "300"]
+        resources:
+          requests:
+            cpu: "3"
+      restartPolicy: Never
+EOF
+
+
+cat <<EOF | oc apply -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: high-priority-vip
+  namespace: deploy-hwprofiles
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+    kueue.x-k8s.io/priority-class: vip-priority
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "300"]
+        resources:
+          requests:
+            cpu: "2"
+      restartPolicy: Never
+EOF
+
+
