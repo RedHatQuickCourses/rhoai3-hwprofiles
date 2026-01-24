@@ -76,6 +76,12 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="section10.html">Advanced Lab: Kueue Optimization</a>
   </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section11.html">section11.adoc</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section12.html">section12.adoc</a>
+  </li>
 </ul>
   </li>
 </ul>
@@ -165,7 +171,7 @@
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Find nodes with NVIDIA GPUs
-oc get nodes -l nvidia.com/gpu.present=true -o jsonpath='{.items[*.metadata.name}'</code></pre>
+oc get nodes -l nvidia.com/gpu.present=true -o</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -175,7 +181,7 @@ oc get nodes -l nvidia.com/gpu.present=true -o jsonpath='{.items[*.metadata.name
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Replace &lt;node-name&gt; with the output from the previous step
-oc adm taint nodes &lt;node-name&gt; nvidia.com/gpu=true:NoSchedule --overwrite</code></pre>
+oc adm taint nodes nvidia.com/gpu=true:NoSchedule --overwrite</code></pre>
 </div>
 </div>
 <div class="ulist">
