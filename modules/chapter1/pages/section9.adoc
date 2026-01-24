@@ -5,9 +5,9 @@
 
 == 1. The Business Value of Kueue
 In high-performance AI environments, hardware like GPUs and high-core-count CPUs are your most expensive assets. Without proper orchestration:
-* **Waste occurs:** Standard low-priority pods (like web servers) might "squat" on expensive AI nodes.
-* **Low ROI:** Expensive hardware sits idle because one user "hoarded" resources they aren't currently using.
-* **Bottlenecks:** Critical production training jobs get stuck behind experimental notebooks.
+ * **Waste occurs:** Standard low-priority pods (like web servers) might "squat" on expensive AI nodes.
+ * **Low ROI:** Expensive hardware sits idle because one user "hoarded" resources they aren't currently using.
+ * **Bottlenecks:** Critical production training jobs get stuck behind experimental notebooks.
 
 **Kueue** maximizes your Return on Investment (ROI) by ensuring that resources are always doing the most valuable work possible through **Quota Management** and **Priority Preemption**.
 
@@ -188,8 +188,8 @@ oc label namespace team-b-research kueue.x-k8s.io/ignore-separator=true --overwr
 
 === Step 6.2: Define Shared Cohort and Weighted Queues
 We will update the `ClusterQueues` to join the same `cohort`. We will also add `fairSharing` weights. 
-* **Team A (deploy-hwprofiles):** Weight 3 (Gets 75% of shared space)
-* **Team B (team-b-research):** Weight 1 (Gets 25% of shared space)
+ * **Team A (deploy-hwprofiles):** Weight 3 (Gets 75% of shared space)
+ * **Team B (team-b-research):** Weight 1 (Gets 25% of shared space)
 
 [source,bash]
 ----

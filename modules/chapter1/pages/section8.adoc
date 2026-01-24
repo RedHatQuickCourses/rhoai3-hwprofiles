@@ -61,14 +61,3 @@ Don't just set defaults; enforce strict ceilings.
 ** Define a `max` value for every resource in the profile.
 ** Example: "Standard Notebook" -> `cpu: { default: "2", max: "4" }`.
 * **The Win:** Even if a user *tries* to request 64 cores in the YAML, the Hardware Profile physically prevents the pod from being admitted. You gain predictable capacity planning.
-
-== Workshop Summary
-
-| Scenario | Strategy Name | Key Configuration |
-| :--- | :--- | :--- |
-| **Data Prep Hoarding** | Efficiency Booster | High RAM / No GPU Identifiers |
-| **Sensitive Data** | Security Vault | Taints + Profile Tolerations |
-| **Exclusive Hardware** | Governance Gate | Namespace-Scoped CRs |
-| **Runaway Costs** | Cost Controller | `resourceLimits: max` |
-
-Apply these patterns to your platform to move from "functioning" to "optimized."

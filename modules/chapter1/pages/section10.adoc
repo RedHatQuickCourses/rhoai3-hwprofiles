@@ -1,0 +1,234 @@
+= Lab: Optimizing AI Clusters with Kueue & Priority
+:navtitle: Advanced Lab: Kueue Optimization
+:imagesdir: ../images
+
+== Objective
+In high-performance AI environments, hardware like GPUs and high-core-count CPUs are your most expensive assets. Without proper orchestration, critical training jobs often get stuck behind low-priority experiments, destroying your ROI.
+
+In this advanced lab, you will configure **Kueue** to act as the "Traffic Controller" for your cluster. You will implement:
+1.  **Strict Quotas** to prevent resource sprawl.
+2.  **Priority Preemption** to ensure "VIP" jobs kick out standard workloads.
+3.  **Fair Sharing** to allow teams to borrow unused capacity dynamically.
+
+== Prerequisites
+* **Red Hat OpenShift AI 3.2** cluster with `cluster-admin` access.
+* **Red Hat Build of Kueue** operator installed.
+* **OpenShift CLI (`oc`)** installed.
+* **Kueue Management Mode:** Ensure Kueue is set to `Unmanaged` in your `DataScienceCluster` configuration if you are manually creating these resources, or ensure `disableKueue: false` is set in the Dashboard config.
+
+---
+
+== Part 1: The Foundation (Defining the Quota)
+
+First, we must define a "Resource Flavor" (the type of hardware) and a "Cluster Queue" (the bucket of resources available). We will set a hard limit of **4 CPUs** to simulate a constrained environment.
+
+.1. Create the Project Namespace
+[source,bash]
+----
+oc new-project deploy-hwprofiles
+# Label the namespace so Kueue manages jobs submitted here
+oc label namespace deploy-hwprofiles kueue.x-k8s.io/ignore-separator=true --overwrite
+----
+
+.2. Define the Queue Architecture
+Apply the following YAML to create a global pool of 4 CPUs and bind it to your project.
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: cluster-queue
+spec:
+  namespaceSelector: {} 
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: "cpu"
+        nominalQuota: 4  # The hard limit for this queue
+      - name: "memory"
+        nominalQuota: 16Gi
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: user-queue
+  namespace: deploy-hwprofiles
+spec:
+  clusterQueue: cluster-queue
+----
+
+.Apply the Configuration
+[source,bash]
+----
+oc apply -f <filename>.yaml
+----
+
+---
+
+== Part 2: Priority & Preemption ("The VIP Lane")
+
+In a real factory, a "Production Training Run" must take precedence over a "Developer Sandbox." We will simulate this by creating two priority classes and enabling preemption.
+
+.1. Define Priority Classes
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: vip-priority
+value: 1000
+description: "High priority for production AI jobs"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: standard-priority
+value: 100
+description: "Standard priority for development jobs"
+----
+
+.2. Enable Preemption on the Queue
+Update the ClusterQueue to allow higher-priority jobs to evict lower-priority ones.
+
+[source,bash]
+----
+oc patch clusterqueue cluster-queue --type merge -p '{"spec": {"preemption": {"withinClusterQueue": "LowerPriority"}}}'
+----
+
+.3. Submit a "Blocker" Job (Standard Priority)
+This job requests **3 CPUs**. Since our limit is 4, it effectively fills the cluster.
+
+[source,yaml]
+----
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: standard-dev-job
+  namespace: deploy-hwprofiles
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+    kueue.x-k8s.io/priority-class: standard-priority
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "600"]
+        resources:
+          requests:
+            cpu: "3"
+      restartPolicy: Never
+----
+
+.4. Submit a "VIP" Job (High Priority)
+This job requests **2 CPUs**. Normally, it would wait. But thanks to preemption, it should force the standard job to terminate.
+
+[source,yaml]
+----
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: production-vip-job
+  namespace: deploy-hwprofiles
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+    kueue.x-k8s.io/priority-class: vip-priority
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "600"]
+        resources:
+          requests:
+            cpu: "2"
+      restartPolicy: Never
+----
+
+=== Verification
+Run `oc get pods` in the namespace. You should see the `standard-dev-job` terminating (Evicted) and the `production-vip-job` creating and running.
+
+---
+
+== Part 3: Fair Sharing & Cohorts ("Borrowing Resources")
+
+Now we will simulate two different teams (Team A and Team B) sharing a common pool of resources. This allows one team to "borrow" unused quota from the other.
+
+.1. Setup Team B Project
+[source,bash]
+----
+oc new-project team-b-research
+oc label namespace team-b-research kueue.x-k8s.io/ignore-separator=true --overwrite
+----
+
+.2. Configure the Cohort (Shared Pool)
+We will create two ClusterQueues that belong to the same `cohort` named "ai-compute-pool".
+* **Team A** gets a weight of 3 (75% share).
+* **Team B** gets a weight of 1 (25% share).
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-a-cq
+spec:
+  namespaceSelector: {}
+  cohort: "ai-compute-pool" # Linking them to the same cohort enables sharing
+  fairSharing:
+    weight: "3"
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: "cpu"
+        nominalQuota: 2
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-b-cq
+spec:
+  namespaceSelector: {}
+  cohort: "ai-compute-pool"
+  fairSharing:
+    weight: "1"
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: "cpu"
+        nominalQuota: 2
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: team-b-queue
+  namespace: team-b-research
+spec:
+  clusterQueue: team-b-cq
+----
+
+=== Verification: "Borrowing" in Action
+1.  Ensure Team A is idle (delete previous jobs).
+2.  Submit a job to **Team B** that requires **3 CPUs**.
+3.  Even though Team B's nominal quota is only **2 CPUs**, the job will run because it borrows the 1 CPU available from Team A's idle pool.
+
+== Lab Summary
+
+You have successfully transformed a static cluster into an elastic, intelligent platform.
+
+* **Preemption** guarantees that your most valuable business logic always runs, even when the cluster is full.
+* **Cohorts** ensure that no hardware sits idle if there is work waiting to be done anywhere in the organization.
