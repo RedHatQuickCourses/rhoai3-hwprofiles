@@ -125,7 +125,7 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="_1_what_are_hardware_profiles"><a class="anchor" href="#_1_what_are_hardware_profiles"></a>1. What are Hardware Profiles?</h2>
+<h2 id="_what_are_hardware_profiles"><a class="anchor" href="#_what_are_hardware_profiles"></a>What are Hardware Profiles?</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Hardware profiles are <strong>Custom Resources (CRs)</strong> that serve as an abstraction layer between the physical infrastructure and the end-user. Instead of manually requesting "4 CPUs and 16GB RAM" every time, a user selects a profile like "Standard Data Science" which pre-defines these values.</p>
@@ -146,55 +146,10 @@
 </li>
 </ul>
 </div>
-<hr>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_2_how_to_create_a_hardware_profile"><a class="anchor" href="#_2_how_to_create_a_hardware_profile"></a>2. How to Create a Hardware Profile</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You create profiles primarily through the OpenShift AI Dashboard.</p>
-</div>
-<div class="sect2">
-<h3 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>Prerequisites</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>You must have <strong>OpenShift AI Administrator</strong> privileges.</p>
-</li>
-<li>
-<p>If using accelerators (GPUs), the <strong>Node Feature Discovery (NFD)</strong> Operator and the specific hardware operator (e.g., NVIDIA GPU Operator) must be installed first.</p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_steps_to_create"><a class="anchor" href="#_steps_to_create"></a>Steps to Create</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Log in to the <strong>OpenShift AI Dashboard</strong>.</p>
-</li>
-<li>
-<p>Navigate to <strong>Settings</strong> &#8594; <strong>Hardware profiles</strong>.</p>
-</li>
-<li>
-<p>Click <strong>Create hardware profile</strong>.</p>
-</li>
-<li>
-<p>Fill in the required configuration fields (detailed in the next section).</p>
-</li>
-<li>
-<p>Click <strong>Create</strong> to make the profile available to users.</p>
-</li>
-</ol>
-</div>
-<hr>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_3_information_needed_sizing_decisions"><a class="anchor" href="#_3_information_needed_sizing_decisions"></a>3. Information Needed &amp; Sizing Decisions</h2>
+<h2 id="_how_to_create_a_hardware_profile"><a class="anchor" href="#_how_to_create_a_hardware_profile"></a>How to Create a Hardware Profile</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>When designing a profile, you need to define three categories of information. Use the guide below to make sizing decisions for each category.</p>
@@ -252,7 +207,7 @@
 <div class="ulist">
 <ul>
 <li>
-<p><em>Decision Tip:</em> Set this to the minimum viable amount needed to start the kernel to avoid wasting cluster capacity.</p>
+<p>Set this to the minimum viable amount needed to start the kernel to avoid wasting cluster capacity.</p>
 </li>
 </ul>
 </div>
@@ -262,7 +217,7 @@
 <div class="ulist">
 <ul>
 <li>
-<p><em>Decision Tip:</em> Set this to prevent a single user from starving the node.</p>
+<p>Set this to prevent a single user from starving the node.</p>
 </li>
 </ul>
 </div>
@@ -314,17 +269,12 @@
 </tr>
 </tbody>
 </table>
-<div class="imageblock unresolved">
-<div class="content">
-<img src="rhoai-hardware-profile-creation.png" alt="OpenShift AI Hardware Profile Creation Screen">
-</div>
-</div>
 <hr>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_4_enabling_storing_hardware_profiles"><a class="anchor" href="#_4_enabling_storing_hardware_profiles"></a>4. Enabling &amp; Storing Hardware Profiles</h2>
+<h2 id="_enabling_storing_hardware_profiles"><a class="anchor" href="#_enabling_storing_hardware_profiles"></a>Enabling &amp; Storing Hardware Profiles</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_where_is_the_information_stored"><a class="anchor" href="#_where_is_the_information_stored"></a>Where is the information stored?</h3>
@@ -358,7 +308,7 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="_5_using_for_accelerators_gpusnpus"><a class="anchor" href="#_5_using_for_accelerators_gpusnpus"></a>5. Using for Accelerators (GPUs/NPUs)</h2>
+<h2 id="_using_for_accelerators_gpusnpus"><a class="anchor" href="#_using_for_accelerators_gpusnpus"></a>Using for Accelerators (GPUs/NPUs)</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To use a hardware profile for accelerators like NVIDIA or Gaudi, follow this workflow:</p>
