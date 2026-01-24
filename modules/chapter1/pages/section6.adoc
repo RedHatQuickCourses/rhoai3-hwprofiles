@@ -1,4 +1,4 @@
-= Day 2 Operations: Governance, Scoping, and Troubleshooting
+= (Pending Deletion) Day 2 Operations: Governance, Scoping, and Troubleshooting
 :navtitle: Operations & Troubleshooting
 :imagesdir: ../images
 

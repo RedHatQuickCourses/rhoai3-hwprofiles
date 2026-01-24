@@ -4,7 +4,7 @@
 
 Hardware profiles in Red Hat OpenShift AI act as templates that define specific hardware configurations for user workloads. They allow administrators to create a menu of available compute resources—such as "Small CPU", "Large Memory", or "NVIDIA A100 GPU"—that data scientists can easily select without needing to understand underlying Kubernetes complexities like taints, tolerations, or resource limits.
 
-== 1. What are Hardware Profiles?
+== What are Hardware Profiles?
 
 Hardware profiles are *Custom Resources (CRs)* that serve as an abstraction layer between the physical infrastructure and the end-user. Instead of manually requesting "4 CPUs and 16GB RAM" every time, a user selects a profile like "Standard Data Science" which pre-defines these values.
 
@@ -14,28 +14,8 @@ Hardware profiles are *Custom Resources (CRs)* that serve as an abstraction laye
 * *Simplicity:* Hide complex Kubernetes node selectors and tolerations behind user-friendly names.
 * *Efficiency:* Ensure workloads are scheduled on the correct hardware (e.g., ensuring GPU jobs only go to GPU nodes).
 
----
 
-== 2. How to Create a Hardware Profile
-
-You create profiles primarily through the OpenShift AI Dashboard.
-
-=== Prerequisites
-
-* You must have *OpenShift AI Administrator* privileges.
-* If using accelerators (GPUs), the *Node Feature Discovery (NFD)* Operator and the specific hardware operator (e.g., NVIDIA GPU Operator) must be installed first.
-
-=== Steps to Create
-
-. Log in to the *OpenShift AI Dashboard*.
-. Navigate to *Settings* -> *Hardware profiles*.
-. Click *Create hardware profile*.
-. Fill in the required configuration fields (detailed in the next section).
-. Click *Create* to make the profile available to users.
-
----
-
-== 3. Information Needed & Sizing Decisions
+== How to Create a Hardware Profile
 
 When designing a profile, you need to define three categories of information. Use the guide below to make sizing decisions for each category.
 
@@ -61,9 +41,9 @@ image::selectors-tolerations.png[align="center", title="Node Selectors, Tolerati
 This is the most critical decision for cost and performance. You set *CPU* and *Memory* values:
 
 * *Request (Minimum):* The amount guaranteed to the container.
-** _Decision Tip:_ Set this to the minimum viable amount needed to start the kernel to avoid wasting cluster capacity.
+** Set this to the minimum viable amount needed to start the kernel to avoid wasting cluster capacity.
 * *Limit (Maximum):* The hard ceiling.
-** _Decision Tip:_ Set this to prevent a single user from starving the node.
+** Set this to prevent a single user from starving the node.
 * *Default:* The pre-filled value the user sees.
 
 .Example Sizing Strategy
@@ -90,11 +70,10 @@ This is the most critical decision for cost and performance. You set *CPU* and *
 |2x NVIDIA GPU
 |===
 
-image::rhoai-hardware-profile-creation.png[OpenShift AI Hardware Profile Creation Screen]
 
 ---
 
-== 4. Enabling & Storing Hardware Profiles
+== Enabling & Storing Hardware Profiles
 
 === Where is the information stored?
 
@@ -111,7 +90,7 @@ In some versions of OpenShift AI, this feature might be hidden behind a feature 
 
 ---
 
-== 5. Using for Accelerators (GPUs/NPUs)
+== Using for Accelerators (GPUs/NPUs)
 
 To use a hardware profile for accelerators like NVIDIA or Gaudi, follow this workflow:
 
