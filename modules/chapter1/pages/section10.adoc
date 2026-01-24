@@ -6,11 +6,13 @@
 In high-performance AI environments, hardware like GPUs and high-core-count CPUs are your most expensive assets. Without proper orchestration, critical training jobs often get stuck behind low-priority experiments, destroying your ROI.
 
 In this advanced lab, you will configure **Kueue** to act as the "Traffic Controller" for your cluster. You will implement:
+
 1.  **Strict Quotas** to prevent resource sprawl.
 2.  **Priority Preemption** to ensure "VIP" jobs kick out standard workloads.
 3.  **Fair Sharing** to allow teams to borrow unused capacity dynamically.
 
 == Prerequisites
+
 * **Red Hat OpenShift AI 3.2** cluster with `cluster-admin` access.
 * **Red Hat Build of Kueue** operator installed.
 * **OpenShift CLI (`oc`)** installed.

@@ -19,7 +19,7 @@ image::hardware_profiles.png[align="center", title="Hardware profiles, the alloc
 Public APIs are simple but drain your wallet with unpredictable fees. Basic Kubernetes node selectors work for five users but fail at fifty. You need a factory floor, not manual intervention. Hardware Profiles provide the governance layer that turns raw compute into a managed, efficient utility.
 ====
 
-== The Solution: Hardware Profiles
+== Hardware Profiles
 
 The Red Hat OpenShift AI (RHOAI) Hardware Profile is the "vending machine" for your compute power. It transforms complex Kubernetes constraints—Taints, Tolerations, and Resource Limits—into a simple, governed menu for your users.
 
