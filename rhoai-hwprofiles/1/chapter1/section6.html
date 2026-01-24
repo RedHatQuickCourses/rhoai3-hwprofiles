@@ -74,7 +74,7 @@
     <a class="nav-link" href="section9.html">Lab: Optimizing AI Clusters with Kueue &amp; Priority</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="section10.html">section10.adoc</a>
+    <a class="nav-link" href="section10.html">Advanced Lab: Kueue Optimization</a>
   </li>
 </ul>
   </li>
@@ -168,7 +168,9 @@
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-
+<div class="paragraph">
+<p>To enable the UI to distinguish between these scopes, ensure the dashboard configuration setting <code>disableProjectScoped</code> is set to <code>false</code>.</p>
+</div>
 </td>
 </tr>
 </table>
@@ -223,7 +225,7 @@
 <p><strong>Root Cause:</strong> The Node has a Taint, but the Hardware Profile is missing the matching Toleration.</p>
 </li>
 <li>
-<p><strong>Fix:</strong> Edit the Hardware Profile YAML. [cite_start]Add the exact <code>key</code>, <code>value</code>, and <code>effect</code> that matches the Node Taint. [cite: 55]</p>
+<p><strong>Fix:</strong> Edit the Hardware Profile YAML. Add the exact <code>key</code>, <code>value</code>, and <code>effect</code> that matches the Node Taint.</p>
 </li>
 </ul>
 </div>
@@ -242,7 +244,7 @@
 <p><strong>Check 2:</strong> Verify the profile is in the correct namespace (<code>redhat-ods-applications</code> for global).</p>
 </li>
 <li>
-<p><strong>Check 3:</strong> Check if the <code>identifiers</code> in the profile match what the Node Feature Discovery (NFD) operator is reporting. [cite_start]If NFD detects <code>nvidia.com/gpu</code> but your profile requests <code>nvidia.com/mig-1g.5gb</code>, the system may filter it out if no nodes report that specific MIG slice. [cite: 12-13]</p>
+<p><strong>Check 3:</strong> Check if the <code>identifiers</code> in the profile match what the Node Feature Discovery (NFD) operator is reporting. If NFD detects <code>nvidia.com/gpu</code> but your profile requests <code>nvidia.com/mig-1g.5gb</code>, the system may filter it out if no nodes report that specific MIG slice.</p>
 </li>
 </ul>
 </div>
@@ -270,7 +272,7 @@
 <p><strong>Verify Tolerations:</strong> Look under <code>spec.tolerations</code>. Is the "magic key" present?</p>
 </li>
 <li>
-<p><strong>Verify Queue:</strong> Look for the label <code>kueue.x-k8s.io/queue-name</code>. [cite_start]Is it pointing to the correct Local Queue? [cite: 27]</p>
+<p><strong>Verify Queue:</strong> Look for the label <code>kueue.x-k8s.io/queue-name</code>. Is it pointing to the correct Local Queue?</p>
 </li>
 </ul>
 </div>

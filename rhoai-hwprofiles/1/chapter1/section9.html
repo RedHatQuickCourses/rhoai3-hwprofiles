@@ -74,7 +74,7 @@
     <a class="nav-link" href="section9.html">Lab: Optimizing AI Clusters with Kueue &amp; Priority</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="section10.html">section10.adoc</a>
+    <a class="nav-link" href="section10.html">Advanced Lab: Kueue Optimization</a>
   </li>
 </ul>
   </li>
@@ -155,9 +155,9 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In high-performance AI environments, hardware like GPUs and high-core-count CPUs are your most expensive assets. Without proper orchestration:
-* <strong>Waste occurs:</strong> Standard low-priority pods (like web servers) might "squat" on expensive AI nodes.
-* <strong>Low ROI:</strong> Expensive hardware sits idle because one user "hoarded" resources they aren&#8217;t currently using.
-* <strong>Bottlenecks:</strong> Critical production training jobs get stuck behind experimental notebooks.</p>
+ * <strong>Waste occurs:</strong> Standard low-priority pods (like web servers) might "squat" on expensive AI nodes.
+ * <strong>Low ROI:</strong> Expensive hardware sits idle because one user "hoarded" resources they aren&#8217;t currently using.
+ * <strong>Bottlenecks:</strong> Critical production training jobs get stuck behind experimental notebooks.</p>
 </div>
 <div class="paragraph">
 <p><strong>Kueue</strong> maximizes your Return on Investment (ROI) by ensuring that resources are always doing the most valuable work possible through <strong>Quota Management</strong> and <strong>Priority Preemption</strong>.</p>
@@ -393,8 +393,8 @@ oc label namespace team-b-research kueue.x-k8s.io/ignore-separator=true --overwr
 <h3 id="_step_6_2_define_shared_cohort_and_weighted_queues"><a class="anchor" href="#_step_6_2_define_shared_cohort_and_weighted_queues"></a>Step 6.2: Define Shared Cohort and Weighted Queues</h3>
 <div class="paragraph">
 <p>We will update the <code>ClusterQueues</code> to join the same <code>cohort</code>. We will also add <code>fairSharing</code> weights.
-* <strong>Team A (deploy-hwprofiles):</strong> Weight 3 (Gets 75% of shared space)
-* <strong>Team B (team-b-research):</strong> Weight 1 (Gets 25% of shared space)</p>
+ * <strong>Team A (deploy-hwprofiles):</strong> Weight 3 (Gets 75% of shared space)
+ * <strong>Team B (team-b-research):</strong> Weight 1 (Gets 25% of shared space)</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -482,7 +482,7 @@ oc get clusterqueue -o custom-columns=NAME:.metadata.name,COHORT:.spec.cohort,WE
 </div>
 <nav class="pagination">
   <span class="prev"><a href="section7.html">Course Summary</a></span>
-  <span class="next"><a href="section10.html">section10.adoc</a></span>
+  <span class="next"><a href="section10.html">Advanced Lab: Kueue Optimization</a></span>
 </nav>
 </article>
   </div>

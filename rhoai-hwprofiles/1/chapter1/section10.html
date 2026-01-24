@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Untitled :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <title>Lab: Optimizing AI Clusters with Kueue &amp; Priority :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
     <link rel="prev" href="section9.html">
     <meta name="generator" content="Antora 3.1.3">
     <link rel="stylesheet" href="../../../_/css/site.css">
@@ -73,7 +73,7 @@
     <a class="nav-link" href="section9.html">Lab: Optimizing AI Clusters with Kueue &amp; Priority</a>
   </li>
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="section10.html">section10.adoc</a>
+    <a class="nav-link" href="section10.html">Advanced Lab: Kueue Optimization</a>
   </li>
 </ul>
   </li>
@@ -106,7 +106,7 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
-    <li><a href="section10.html">section10.adoc</a></li>
+    <li><a href="section10.html">Advanced Lab: Kueue Optimization</a></li>
   </ul>
 </nav>
 </div>
@@ -115,7 +115,298 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-
+<h1 class="page">Lab: Optimizing AI Clusters with Kueue &amp; Priority</h1>
+<div class="sect1">
+<h2 id="_objective"><a class="anchor" href="#_objective"></a>Objective</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In high-performance AI environments, hardware like GPUs and high-core-count CPUs are your most expensive assets. Without proper orchestration, critical training jobs often get stuck behind low-priority experiments, destroying your ROI.</p>
+</div>
+<div class="paragraph">
+<p>In this advanced lab, you will configure <strong>Kueue</strong> to act as the "Traffic Controller" for your cluster. You will implement:
+1.  <strong>Strict Quotas</strong> to prevent resource sprawl.
+2.  <strong>Priority Preemption</strong> to ensure "VIP" jobs kick out standard workloads.
+3.  <strong>Fair Sharing</strong> to allow teams to borrow unused capacity dynamically.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Red Hat OpenShift AI 3.2</strong> cluster with <code>cluster-admin</code> access.</p>
+</li>
+<li>
+<p><strong>Red Hat Build of Kueue</strong> operator installed.</p>
+</li>
+<li>
+<p><strong>OpenShift CLI (<code>oc</code>)</strong> installed.</p>
+</li>
+<li>
+<p><strong>Kueue Management Mode:</strong> Ensure Kueue is set to <code>Unmanaged</code> in your <code>DataScienceCluster</code> configuration if you are manually creating these resources, or ensure <code>disableKueue: false</code> is set in the Dashboard config.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_1_the_foundation_defining_the_quota"><a class="anchor" href="#_part_1_the_foundation_defining_the_quota"></a>Part 1: The Foundation (Defining the Quota)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First, we must define a "Resource Flavor" (the type of hardware) and a "Cluster Queue" (the bucket of resources available). We will set a hard limit of <strong>4 CPUs</strong> to simulate a constrained environment.</p>
+</div>
+<div class="listingblock">
+<div class="title">1. Create the Project Namespace</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc new-project deploy-hwprofiles
+# Label the namespace so Kueue manages jobs submitted here
+oc label namespace deploy-hwprofiles kueue.x-k8s.io/ignore-separator=true --overwrite</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">2. Define the Queue Architecture</div>
+<p>Apply the following YAML to create a global pool of 4 CPUs and bind it to your project.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: cluster-queue
+spec:
+  namespaceSelector: {}
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: "cpu"
+        nominalQuota: 4  # The hard limit for this queue
+      - name: "memory"
+        nominalQuota: 16Gi
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: user-queue
+  namespace: deploy-hwprofiles
+spec:
+  clusterQueue: cluster-queue</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Apply the Configuration</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f &lt;filename&gt;.yaml</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_2_priority_preemption_the_vip_lane"><a class="anchor" href="#_part_2_priority_preemption_the_vip_lane"></a>Part 2: Priority &amp; Preemption ("The VIP Lane")</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In a real factory, a "Production Training Run" must take precedence over a "Developer Sandbox." We will simulate this by creating two priority classes and enabling preemption.</p>
+</div>
+<div class="listingblock">
+<div class="title">1. Define Priority Classes</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: vip-priority
+value: 1000
+description: "High priority for production AI jobs"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: standard-priority
+value: 100
+description: "Standard priority for development jobs"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">2. Enable Preemption on the Queue</div>
+<p>Update the ClusterQueue to allow higher-priority jobs to evict lower-priority ones.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch clusterqueue cluster-queue --type merge -p '{"spec": {"preemption": {"withinClusterQueue": "LowerPriority"}}}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">3. Submit a "Blocker" Job (Standard Priority)</div>
+<p>This job requests <strong>3 CPUs</strong>. Since our limit is 4, it effectively fills the cluster.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: batch/v1
+kind: Job
+metadata:
+  name: standard-dev-job
+  namespace: deploy-hwprofiles
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+    kueue.x-k8s.io/priority-class: standard-priority
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "600"]
+        resources:
+          requests:
+            cpu: "3"
+      restartPolicy: Never</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">4. Submit a "VIP" Job (High Priority)</div>
+<p>This job requests <strong>2 CPUs</strong>. Normally, it would wait. But thanks to preemption, it should force the standard job to terminate.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: batch/v1
+kind: Job
+metadata:
+  name: production-vip-job
+  namespace: deploy-hwprofiles
+  labels:
+    kueue.x-k8s.io/queue-name: user-queue
+    kueue.x-k8s.io/priority-class: vip-priority
+spec:
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: busybox
+        command: ["sleep", "600"]
+        resources:
+          requests:
+            cpu: "2"
+      restartPolicy: Never</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verification"><a class="anchor" href="#_verification"></a>Verification</h3>
+<div class="paragraph">
+<p>Run <code>oc get pods</code> in the namespace. You should see the <code>standard-dev-job</code> terminating (Evicted) and the <code>production-vip-job</code> creating and running.</p>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_3_fair_sharing_cohorts_borrowing_resources"><a class="anchor" href="#_part_3_fair_sharing_cohorts_borrowing_resources"></a>Part 3: Fair Sharing &amp; Cohorts ("Borrowing Resources")</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now we will simulate two different teams (Team A and Team B) sharing a common pool of resources. This allows one team to "borrow" unused quota from the other.</p>
+</div>
+<div class="listingblock">
+<div class="title">1. Setup Team B Project</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc new-project team-b-research
+oc label namespace team-b-research kueue.x-k8s.io/ignore-separator=true --overwrite</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">2. Configure the Cohort (Shared Pool)</div>
+<p>We will create two ClusterQueues that belong to the same <code>cohort</code> named "ai-compute-pool".
+* <strong>Team A</strong> gets a weight of 3 (75% share).
+* <strong>Team B</strong> gets a weight of 1 (25% share).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-a-cq
+spec:
+  namespaceSelector: {}
+  cohort: "ai-compute-pool" # Linking them to the same cohort enables sharing
+  fairSharing:
+    weight: "3"
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: "cpu"
+        nominalQuota: 2
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-b-cq
+spec:
+  namespaceSelector: {}
+  cohort: "ai-compute-pool"
+  fairSharing:
+    weight: "1"
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: "cpu"
+        nominalQuota: 2
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: team-b-queue
+  namespace: team-b-research
+spec:
+  clusterQueue: team-b-cq</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verification_borrowing_in_action"><a class="anchor" href="#_verification_borrowing_in_action"></a>Verification: "Borrowing" in Action</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Ensure Team A is idle (delete previous jobs).</p>
+</li>
+<li>
+<p>Submit a job to <strong>Team B</strong> that requires <strong>3 CPUs</strong>.</p>
+</li>
+<li>
+<p>Even though Team B&#8217;s nominal quota is only <strong>2 CPUs</strong>, the job will run because it borrows the 1 CPU available from Team A&#8217;s idle pool.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_lab_summary"><a class="anchor" href="#_lab_summary"></a>Lab Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You have successfully transformed a static cluster into an elastic, intelligent platform.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Preemption</strong> guarantees that your most valuable business logic always runs, even when the cluster is full.</p>
+</li>
+<li>
+<p><strong>Cohorts</strong> ensure that no hardware sits idle if there is work waiting to be done anywhere in the organization.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="section9.html">Lab: Optimizing AI Clusters with Kueue &amp; Priority</a></span>
 </nav>
