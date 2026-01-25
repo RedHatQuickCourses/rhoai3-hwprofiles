@@ -110,7 +110,8 @@ When a user selects a `HardwareProfile` in the RHOAI Dashboard, the operator cre
 * **Shared GPU Profiles:** Map to `shared-gpu-flavor` because of the `nodeSelector` in the profile.
 * **A100 Profiles:** Map to `a100-flavor` because of the `nodeSelector` and `tolerations` in the profile.
 
-
+=====
+=====
 
 = Mapping Hardware Profiles to Kueue Quotas
 :author: Platform Engineering Team
@@ -226,6 +227,10 @@ oc get workload <workload-name> -n <user-project> -o yaml | grep flavor
 oc describe clusterqueue main-cluster-queue
 ----
 
+
+======
+
+======
 
 = Integrating Hardware Profiles with Kueue
 :author: Platform Engineering Team
