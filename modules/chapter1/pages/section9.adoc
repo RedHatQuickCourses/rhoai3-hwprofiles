@@ -3,8 +3,9 @@
 :icons: font
 :source-highlighter: rouge
 
-== 1. The Business Value of Kueue
+== he Business Value of Kueue
 In high-performance AI environments, hardware like GPUs and high-core-count CPUs are your most expensive assets. Without proper orchestration:
+
  * **Waste occurs:** Standard low-priority pods (like web servers) might "squat" on expensive AI nodes.
  * **Low ROI:** Expensive hardware sits idle because one user "hoarded" resources they aren't currently using.
  * **Bottlenecks:** Critical production training jobs get stuck behind experimental notebooks.
@@ -16,7 +17,7 @@ In high-performance AI environments, hardware like GPUs and high-core-count CPUs
 == 2. Lab Environment Setup
 This lab assumes the **Red Hat Build of Kueue** operator is installed and OpenShift AI 3.0 is running in `Unmanaged` mode for the Kueue component.
 
-=== Step 2.1: Create the Project Namespace
+=== Create the Project Namespace
 We will create a specific namespace for our hardware profile testing.
 
 [source,bash]
@@ -33,7 +34,7 @@ oc label namespace deploy-hwprofiles kueue.x-k8s.io/ignore-separator=true --over
 == 3. Exercise 1: Building the Basic CPU Queue
 In this exercise, we define a "Hard Limit" for our project. This prevents "Resource Sprawl" where one project consumes the entire cluster's CPU.
 
-=== Step 3.1: Create Resource Flavor and ClusterQueue
+=== Create Resource Flavor and ClusterQueue
 Run the following to define a global pool of **4 CPUs**.
 
 [source,bash]

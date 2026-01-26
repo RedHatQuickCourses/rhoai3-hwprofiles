@@ -1,4 +1,4 @@
-= Pending Deletion: Advanced Placement: Taints, Tolerations, and Node Selectors
+= Workload Placement: Taints, Tolerations, and Node Selectors
 :navtitle: Taints & Tolerations
 :imagesdir: ../images
 
@@ -20,20 +20,7 @@ To master Hardware Profiles, you must understand the relationship between the No
 You *cannot* combine this strategy with Kueue. If you define `tolerations` or `nodeSelectors` in a Hardware Profile, you cannot use the `LocalQueue` allocation strategy. You must choose between *Static Pinning* (this page) or *Dynamic Queuing* (next page).
 ====
 
-== Step 1: Identify Your Node Labels (The Address)
-
-Before you can map a profile to a node, you need to know what the node is called. OpenShift automatically applies labels to nodes based on their hardware (via the Node Feature Discovery Operator).
-
-.Find your Node Labels
-[source,bash]
-----
-oc get nodes --show-labels | grep nvidia
-----
-
-*Typical Output:*
-`feature.node.kubernetes.io/pci-10de.present=true`
-`nvidia.com/gpu.present=true`
-`node-role.kubernetes.io/worker=""`
+== Set Node Labels (The Address)
 
 You can also apply your own custom labels to group nodes logically (e.g., "Team=Finance").
 
@@ -43,7 +30,7 @@ You can also apply your own custom labels to group nodes logically (e.g., "Team=
 oc label node <node-name> gpu-type=A100-80GB
 ----
 
-== Step 2: Apply a Taint (The Lock)
+== Apply a Taint (The Lock)
 
 If you simply add a label, the scheduler *prefers* that node, but it doesn't *protect* it. Other workloads can still land there if they have nowhere else to go. To strictly reserve the hardware, you must Taint it.
 
@@ -57,7 +44,7 @@ oc adm taint nodes <node-name> nvidia.com/gpu=true:NoSchedule
 * **Value:** `true`
 * **Effect:** `NoSchedule` (Existing pods stay, new pods without the key are rejected).
 
-== Step 3: Configure the Hardware Profile (The Key)
+== Configure the Hardware Profile (The Key)
 
 Now, you configure the Hardware Profile to provide the matching "Key" (Toleration) and the correct "Address" (Node Selector) to the user's workload.
 
@@ -109,9 +96,9 @@ spec:
 
 == How It Works in Practice
 
-1.  **The User** selects "Exclusive - NVIDIA A100" from the RHOAI Dashboard.
+1.  **The User** selects "Training: Dedicated A100" from the RHOAI Dashboard.
 2.  **OpenShift AI** injects the `nodeSelector` and `tolerations` from the profile into the User's Pod spec.
-3.  **The Kubernetes Scheduler** sees the `nodeSelector` ("Must run on A100-80GB").
+3.  **The Kubernetes Scheduler** sees the `nodeSelector` ("Must run on A100-SXM4-80GB").
 4.  The Scheduler finds the matching node.
 5.  The Scheduler checks the Node's Taint ("Locked: nvidia.com/gpu").
 6.  The Scheduler checks the Pod's Toleration ("Key: nvidia.com/gpu").

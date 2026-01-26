@@ -35,6 +35,12 @@ This section tells Kubernetes *where* to run the workload.
 
 image::selectors-tolerations.png[align="center", title="Node Selectors, Tolerations, and Hardware Profiles"]
 
+[IMPORTANT]
+.Critical Restriction
+====
+You *cannot* combine this strategy with Kueue. If you define `tolerations` or `nodeSelectors` in a Hardware Profile, you cannot use the `LocalQueue` allocation strategy. You must choose between *Static Pinning* or *Dynamic Queuing* (next page).
+====
+
 
 === C. Resource Limits (The "Sizing")
 
@@ -102,3 +108,24 @@ To use a hardware profile for accelerators like NVIDIA or Gaudi, follow this wor
 . *Associate with Images (Optional):* You can link a hardware profile to specific *Workbench Images*. For example, you can configure the "PyTorch" image to recommend the "NVIDIA GPU" profile, creating a warning if a user tries to run it on a CPU-only node.
 
 Once configured, a data scientist simply selects "NVIDIA GPU" from a dropdown when creating a workbench, and the system automatically handles the complex Kubernetes scheduling in the background.
+
+== Governance: Global vs. Project-Scoped Profiles
+
+Not every team needs access to your most expensive hardware. You can control the visibility of Hardware Profiles by defining where they live in the cluster.
+
+=== Global Profiles (Public Utility)
+Global profiles are visible to **all users** in the OpenShift AI dashboard. Use these for generic resources (e.g., "Standard CPU", "Shared GPU").
+
+* *How to Configure:* Create the `HardwareProfile` Custom Resource (CR) in the **dashboard application namespace** (typically `redhat-ods-applications`).
+* *Use Case:* General development, interactive notebooks, introductory training.
+
+=== Project-Scoped Profiles (Private Reserve)
+Project-scoped profiles are visible *only* to users within a specific Data Science Project. Use these for specialized hardware reserved for advanced teams (e.g., "Finance Team H100").
+
+* *How to Configure:* Create the `HardwareProfile` CR inside the **user's project namespace** (e.g., `finance-models-prod`).
+* *Use Case:* Sensitive workloads, reserved capacity for high-priority projects, hardware with specific regulatory compliance requirements.
+
+[TIP]
+====
+To enable the UI to distinguish between these scopes, ensure the dashboard configuration setting `disableProjectScoped` is set to `false`.
+====
