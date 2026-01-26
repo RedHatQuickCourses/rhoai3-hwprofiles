@@ -59,16 +59,7 @@
     <a class="nav-link" href="section3.html">Kueue Integration</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="section6.html">Operations &amp; Troubleshooting</a>
-  </li>
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="section1.html">Automation Lab</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="section8.html">Strategy Workshop</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="section7.html">Course Summary</a>
   </li>
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="section9.html">Lab: Optimizing AI Clusters with Kueue &amp; Priority</a>
@@ -81,6 +72,9 @@
   </li>
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="section12.html">Integrating Hardware Profiles with Kueue</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section7.html">Course Summary</a>
   </li>
 </ul>
   </li>
@@ -199,6 +193,21 @@
 <img src="_images/selectors-tolerations.png" alt="selectors tolerations">
 </div>
 <div class="title">Figure 1. Node Selectors, Tolerations, and Hardware Profiles</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Critical Restriction</div>
+<div class="paragraph">
+<p>You <strong>cannot</strong> combine this strategy with Kueue. If you define <code>tolerations</code> or <code>nodeSelectors</code> in a Hardware Profile, you cannot use the <code>LocalQueue</code> allocation strategy. You must choose between <strong>Static Pinning</strong> or <strong>Dynamic Queuing</strong> (next page).</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -347,6 +356,60 @@
 </div>
 <div class="paragraph">
 <p>Once configured, a data scientist simply selects "NVIDIA GPU" from a dropdown when creating a workbench, and the system automatically handles the complex Kubernetes scheduling in the background.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_governance_global_vs_project_scoped_profiles"><a class="anchor" href="#_governance_global_vs_project_scoped_profiles"></a>Governance: Global vs. Project-Scoped Profiles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Not every team needs access to your most expensive hardware. You can control the visibility of Hardware Profiles by defining where they live in the cluster.</p>
+</div>
+<div class="sect2">
+<h3 id="_global_profiles_public_utility"><a class="anchor" href="#_global_profiles_public_utility"></a>Global Profiles (Public Utility)</h3>
+<div class="paragraph">
+<p>Global profiles are visible to <strong>all users</strong> in the OpenShift AI dashboard. Use these for generic resources (e.g., "Standard CPU", "Shared GPU").</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>How to Configure:</strong> Create the <code>HardwareProfile</code> Custom Resource (CR) in the <strong>dashboard application namespace</strong> (typically <code>redhat-ods-applications</code>).</p>
+</li>
+<li>
+<p><strong>Use Case:</strong> General development, interactive notebooks, introductory training.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_project_scoped_profiles_private_reserve"><a class="anchor" href="#_project_scoped_profiles_private_reserve"></a>Project-Scoped Profiles (Private Reserve)</h3>
+<div class="paragraph">
+<p>Project-scoped profiles are visible <strong>only</strong> to users within a specific Data Science Project. Use these for specialized hardware reserved for advanced teams (e.g., "Finance Team H100").</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>How to Configure:</strong> Create the <code>HardwareProfile</code> CR inside the <strong>user&#8217;s project namespace</strong> (e.g., <code>finance-models-prod</code>).</p>
+</li>
+<li>
+<p><strong>Use Case:</strong> Sensitive workloads, reserved capacity for high-priority projects, hardware with specific regulatory compliance requirements.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To enable the UI to distinguish between these scopes, ensure the dashboard configuration setting <code>disableProjectScoped</code> is set to <code>false</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 </div>
