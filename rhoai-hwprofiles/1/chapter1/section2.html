@@ -242,48 +242,12 @@
 </li>
 </ul>
 </div>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. Example Sizing Strategy</caption>
-<colgroup>
-<col style="width: 16.6666%;">
-<col style="width: 33.3333%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6669%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Profile Name</th>
-<th class="tableblock halign-left valign-top">Target Use Case</th>
-<th class="tableblock halign-left valign-top">CPU (Req/Lim)</th>
-<th class="tableblock halign-left valign-top">Memory (Req/Lim)</th>
-<th class="tableblock halign-left valign-top">Accelerator</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Standard</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Data exploration, simple ML</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2 / 4 Cores</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8GB / 16GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">None</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Training</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Deep learning models</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8 / 16 Cores</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">32GB / 64GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1x NVIDIA GPU</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Large</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">LLM Fine-tuning</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">24 / 48 Cores</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">128GB / 256GB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2x NVIDIA GPU</p></td>
-</tr>
-</tbody>
-</table>
+<div class="imageblock text-center">
+<div class="content">
+<img src="_images/resource-limits.png" alt="resource limits">
+</div>
+<div class="title">Figure 2. Node Selectors, Tolerations, and Hardware Profiles</div>
+</div>
 <hr>
 </div>
 </div>
