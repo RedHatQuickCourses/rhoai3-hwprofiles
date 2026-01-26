@@ -1,0 +1,96 @@
+= Efficient Resource Management with Kueue & RHOAI
+:navtitle: Kueue Infrastructure Setup
+:toc: left
+:source-highlighter: rouge
+
+== Overview
+Managing expensive compute resources like GPUs often leads to a "feast or famine" scenario. **Kueue** solves this by introducing a cloud-native job queuing system that acts as a traffic controller for your cluster.
+
+In Red Hat OpenShift AI (RHOAI), **Hardware Profiles** serve as the bridge between user workloads and this queuing system. Instead of defining raw Kubernetes resources, users select a profile, and Kueue ensures the workload runs only when quota is available.
+
+
+
+=== Key Concepts
+* **ResourceFlavor (Hardware):** Defines *what* hardware allows (e.g., "Standard Node" vs "A100 GPU Node").
+* **ClusterQueue (Quotas):** Defines *how much* resource is available globally (e.g., "Total 4 GPUs").
+* **LocalQueue (Entry Point):** The namespace-level bucket where users submit jobs.
+
+---
+
+== Phase 1: Administrator Setup (Infrastructure)
+
+To enable this architecture, the cluster administrator must define the physical hardware properties and the logical quotas.
+
+=== 1. Activate Kueue for the Project
+Kueue uses an "opt-in" model. You must label the data science project to enable the webhook.
+
+[source,bash]
+----
+# Replace with your target namespace (e.g., ai-team-a)
+oc label namespace ai-team-a kueue.openshift.io/managed=true
+----
+
+=== 2. Define ResourceFlavors (The Hardware)
+Create flavors to represent the distinct types of compute available.
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor # Standard CPU nodes
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: a100-flavor # High-performance GPU nodes
+spec:
+  nodeLabels:
+    nvidia.com/gpu.product: "A100-SXM4-80GB"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+----
+
+=== 3. Configure the ClusterQueue (The Quota)
+Set the hard limits for your cluster. In this example, we define quotas for CPU, Memory, and NVIDIA GPUs.
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: main-cluster-queue
+spec:
+  namespaceSelector: {} # Applies to all managed namespaces
+  resourceGroups:
+    - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+      flavors:
+        - name: default-flavor
+          resources:
+            - name: "cpu"
+              nominalQuota: "100"
+            - name: "memory"
+              nominalQuota: "500Gi"
+        - name: a100-flavor
+          resources:
+            - name: "nvidia.com/gpu"
+              nominalQuota: "4" # Total available A100s
+----
+
+=== 4. Create the LocalQueue (The Bridge)
+Create a queue inside the user's namespace that points to the global ClusterQueue.
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: default-queue
+  namespace: ai-team-a
+  annotations:
+    kueue.x-k8s.io/default-queue: "true" # Auto-assigns workloads to this queue
+spec:
+  clusterQueue: main-cluster-queue
+----

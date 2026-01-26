@@ -1,0 +1,106 @@
+= Deploying Kueue-Aware Hardware Profiles
+:navtitle: Hardware Profiles & Kueue
+:toc: left
+:source-highlighter: rouge
+
+== Overview
+Once the infrastructure is configured, you must create **Hardware Profiles** that users can select in the RHOAI Dashboard.
+
+When integrating with Kueue, **Workload Allocation** changes significantly:
+* **No Manual Selectors:** You should generally avoid adding `nodeSelector` or `tolerations` directly to the profile.
+* **Managed Placement:** Kueue automatically injects the necessary scheduling info based on the `ResourceFlavor`.
+* **Full Resource Definition:** You must define `cpu`, `memory`, and `accelerator` identifiers so Kueue can calculate the total cost of the workload.
+
+---
+
+== Profile Templates
+
+Use the following templates to create profiles in the `redhat-ods-applications` namespace.
+
+=== 1. Standard CPU Profile
+This profile is for general data science work (JupyterLab, Pandas). It maps to the `default-flavor`.
+
+[source,yaml]
+----
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: kueue-standard-cpu
+  namespace: redhat-ods-applications
+  annotations:
+    opendatahub.io/display-name: "Standard CPU (Queued)"
+    opendatahub.io/description: "2-4 vCPU, 8-16GB RAM. Managed by Kueue."
+    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
+spec:
+  enabled: true
+  # Handover control to the LocalQueue we created earlier
+  managementState: "Managed"
+  location:
+    localQueue: "default-queue"
+    
+  identifiers:
+    - identifier: cpu
+      displayName: CPU
+      resourceType: CPU
+      defaultCount: 2
+      minCount: 2
+      maxCount: 4
+    - identifier: memory
+      displayName: Memory
+      resourceType: Memory
+      defaultCount: 8Gi
+      minCount: 8Gi
+      maxCount: 16Gi
+----
+
+=== 2. High-Performance A100 Training Profile
+This profile requests a GPU. Kueue will intercept this request, match it to the `a100-flavor` (which has the GPU quota), and schedule it only when a GPU is free.
+
+**Note:** We include CPU and Memory identifiers to ensure the training container has sufficient system resources to drive the GPU.
+
+[source,yaml]
+----
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: kueue-training-a100
+  namespace: redhat-ods-applications
+  annotations:
+    opendatahub.io/display-name: "Training: NVIDIA A100"
+    opendatahub.io/description: "High-performance training node. 1 GPU, 12 CPUs, 64GB RAM."
+    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
+spec:
+  enabled: true
+  managementState: "Managed"
+  location:
+    localQueue: "default-queue"
+
+  identifiers:
+    # 1. The Accelerator Request (Triggers the A100 Flavor)
+    - identifier: "nvidia.com/gpu"
+      displayName: "NVIDIA A100 GPU"
+      resourceType: Accelerator
+      defaultCount: 1
+      minCount: 1
+      maxCount: 2
+      
+    # 2. The System Resource Requests
+    - identifier: cpu
+      displayName: CPU
+      resourceType: CPU
+      defaultCount: 12
+      minCount: 6
+      maxCount: 24
+    - identifier: memory
+      displayName: Memory
+      resourceType: Memory
+      defaultCount: 64Gi
+      minCount: 32Gi
+      maxCount: 128Gi
+----
+
+== Validation
+To verify the integration is working:
+1.  **Launch a Workbench** using the "Training: NVIDIA A100" profile.
+2.  **Check the Workload:** Run `oc get workloads -n <project-name>`.
+3.  **Check the Quota:** Run `oc describe clusterqueue main-cluster-queue` to see the "Used" resources increase.
