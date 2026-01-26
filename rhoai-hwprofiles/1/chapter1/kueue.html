@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Efficient Resource Management with Kueue &amp; RHOAI :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="section11.html">
+    <link rel="next" href="kueue-lab.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section2.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section5.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section4.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section11.html">OpenShift AI Hardware Profile Tiering Strategy</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="kueue.html">Kueue Infrastructure Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kueue-lab.html">Hardware Profiles &amp; Kueue</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section1.html">Automation Lab</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section12.html">Integrating Hardware Profiles with Kueue</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section7.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="kueue.html">Kueue Infrastructure Setup</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Efficient Resource Management with Kueue &amp; RHOAI</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#_key_concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a href="#_phase_1_administrator_setup_infrastructure">Phase 1: Administrator Setup (Infrastructure)</a>
+<ul class="sectlevel2">
+<li><a href="#_1_activate_kueue_for_the_project">1. Activate Kueue for the Project</a></li>
+<li><a href="#_2_define_resourceflavors_the_hardware">2. Define ResourceFlavors (The Hardware)</a></li>
+<li><a href="#_3_configure_the_clusterqueue_the_quota">3. Configure the ClusterQueue (The Quota)</a></li>
+<li><a href="#_4_create_the_localqueue_the_bridge">4. Create the LocalQueue (The Bridge)</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Managing expensive compute resources like GPUs often leads to a "feast or famine" scenario. <strong>Kueue</strong> solves this by introducing a cloud-native job queuing system that acts as a traffic controller for your cluster.</p>
+</div>
+<div class="paragraph">
+<p>In Red Hat OpenShift AI (RHOAI), <strong>Hardware Profiles</strong> serve as the bridge between user workloads and this queuing system. Instead of defining raw Kubernetes resources, users select a profile, and Kueue ensures the workload runs only when quota is available.</p>
+</div>
+<div class="sect2">
+<h3 id="_key_concepts"><a class="anchor" href="#_key_concepts"></a>Key Concepts</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>ResourceFlavor (Hardware):</strong> Defines <strong>what</strong> hardware allows (e.g., "Standard Node" vs "A100 GPU Node").</p>
+</li>
+<li>
+<p><strong>ClusterQueue (Quotas):</strong> Defines <strong>how much</strong> resource is available globally (e.g., "Total 4 GPUs").</p>
+</li>
+<li>
+<p><strong>LocalQueue (Entry Point):</strong> The namespace-level bucket where users submit jobs.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_phase_1_administrator_setup_infrastructure"><a class="anchor" href="#_phase_1_administrator_setup_infrastructure"></a>Phase 1: Administrator Setup (Infrastructure)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To enable this architecture, the cluster administrator must define the physical hardware properties and the logical quotas.</p>
+</div>
+<div class="sect2">
+<h3 id="_1_activate_kueue_for_the_project"><a class="anchor" href="#_1_activate_kueue_for_the_project"></a>1. Activate Kueue for the Project</h3>
+<div class="paragraph">
+<p>Kueue uses an "opt-in" model. You must label the data science project to enable the webhook.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Replace with your target namespace (e.g., ai-team-a)
+oc label namespace ai-team-a kueue.openshift.io/managed=true</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_2_define_resourceflavors_the_hardware"><a class="anchor" href="#_2_define_resourceflavors_the_hardware"></a>2. Define ResourceFlavors (The Hardware)</h3>
+<div class="paragraph">
+<p>Create flavors to represent the distinct types of compute available.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor # Standard CPU nodes
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: a100-flavor # High-performance GPU nodes
+spec:
+  nodeLabels:
+    nvidia.com/gpu.product: "A100-SXM4-80GB"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_configure_the_clusterqueue_the_quota"><a class="anchor" href="#_3_configure_the_clusterqueue_the_quota"></a>3. Configure the ClusterQueue (The Quota)</h3>
+<div class="paragraph">
+<p>Set the hard limits for your cluster. In this example, we define quotas for CPU, Memory, and NVIDIA GPUs.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: main-cluster-queue
+spec:
+  namespaceSelector: {} # Applies to all managed namespaces
+  resourceGroups:
+    - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+      flavors:
+        - name: default-flavor
+          resources:
+            - name: "cpu"
+              nominalQuota: "100"
+            - name: "memory"
+              nominalQuota: "500Gi"
+        - name: a100-flavor
+          resources:
+            - name: "nvidia.com/gpu"
+              nominalQuota: "4" # Total available A100s</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_4_create_the_localqueue_the_bridge"><a class="anchor" href="#_4_create_the_localqueue_the_bridge"></a>4. Create the LocalQueue (The Bridge)</h3>
+<div class="paragraph">
+<p>Create a queue inside the user&#8217;s namespace that points to the global ClusterQueue.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: default-queue
+  namespace: ai-team-a
+  annotations:
+    kueue.x-k8s.io/default-queue: "true" # Auto-assigns workloads to this queue
+spec:
+  clusterQueue: main-cluster-queue</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="section11.html">OpenShift AI Hardware Profile Tiering Strategy</a></span>
+  <span class="next"><a href="kueue-lab.html">Hardware Profiles &amp; Kueue</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Deploying Kueue-Aware Hardware Profiles :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="kueue.html">
+    <link rel="next" href="section1.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section2.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section5.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section4.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section11.html">OpenShift AI Hardware Profile Tiering Strategy</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kueue.html">Kueue Infrastructure Setup</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="kueue-lab.html">Hardware Profiles &amp; Kueue</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section1.html">Automation Lab</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section12.html">Integrating Hardware Profiles with Kueue</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="section7.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="kueue-lab.html">Hardware Profiles &amp; Kueue</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Deploying Kueue-Aware Hardware Profiles</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_profile_templates">Profile Templates</a>
+<ul class="sectlevel2">
+<li><a href="#_1_standard_cpu_profile">1. Standard CPU Profile</a></li>
+<li><a href="#_2_high_performance_a100_training_profile">2. High-Performance A100 Training Profile</a></li>
+</ul>
+</li>
+<li><a href="#_validation">Validation</a></li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once the infrastructure is configured, you must create <strong>Hardware Profiles</strong> that users can select in the RHOAI Dashboard.</p>
+</div>
+<div class="paragraph">
+<p>When integrating with Kueue, <strong>Workload Allocation</strong> changes significantly:
+* <strong>No Manual Selectors:</strong> You should generally avoid adding <code>nodeSelector</code> or <code>tolerations</code> directly to the profile.
+* <strong>Managed Placement:</strong> Kueue automatically injects the necessary scheduling info based on the <code>ResourceFlavor</code>.
+* <strong>Full Resource Definition:</strong> You must define <code>cpu</code>, <code>memory</code>, and <code>accelerator</code> identifiers so Kueue can calculate the total cost of the workload.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_profile_templates"><a class="anchor" href="#_profile_templates"></a>Profile Templates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the following templates to create profiles in the <code>redhat-ods-applications</code> namespace.</p>
+</div>
+<div class="sect2">
+<h3 id="_1_standard_cpu_profile"><a class="anchor" href="#_1_standard_cpu_profile"></a>1. Standard CPU Profile</h3>
+<div class="paragraph">
+<p>This profile is for general data science work (JupyterLab, Pandas). It maps to the <code>default-flavor</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: kueue-standard-cpu
+  namespace: redhat-ods-applications
+  annotations:
+    opendatahub.io/display-name: "Standard CPU (Queued)"
+    opendatahub.io/description: "2-4 vCPU, 8-16GB RAM. Managed by Kueue."
+    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
+spec:
+  enabled: true
+  # Handover control to the LocalQueue we created earlier
+  managementState: "Managed"
+  location:
+    localQueue: "default-queue"
+
+  identifiers:
+    - identifier: cpu
+      displayName: CPU
+      resourceType: CPU
+      defaultCount: 2
+      minCount: 2
+      maxCount: 4
+    - identifier: memory
+      displayName: Memory
+      resourceType: Memory
+      defaultCount: 8Gi
+      minCount: 8Gi
+      maxCount: 16Gi</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_2_high_performance_a100_training_profile"><a class="anchor" href="#_2_high_performance_a100_training_profile"></a>2. High-Performance A100 Training Profile</h3>
+<div class="paragraph">
+<p>This profile requests a GPU. Kueue will intercept this request, match it to the <code>a100-flavor</code> (which has the GPU quota), and schedule it only when a GPU is free.</p>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> We include CPU and Memory identifiers to ensure the training container has sufficient system resources to drive the GPU.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: kueue-training-a100
+  namespace: redhat-ods-applications
+  annotations:
+    opendatahub.io/display-name: "Training: NVIDIA A100"
+    opendatahub.io/description: "High-performance training node. 1 GPU, 12 CPUs, 64GB RAM."
+    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
+spec:
+  enabled: true
+  managementState: "Managed"
+  location:
+    localQueue: "default-queue"
+
+  identifiers:
+    # 1. The Accelerator Request (Triggers the A100 Flavor)
+    - identifier: "nvidia.com/gpu"
+      displayName: "NVIDIA A100 GPU"
+      resourceType: Accelerator
+      defaultCount: 1
+      minCount: 1
+      maxCount: 2
+
+    # 2. The System Resource Requests
+    - identifier: cpu
+      displayName: CPU
+      resourceType: CPU
+      defaultCount: 12
+      minCount: 6
+      maxCount: 24
+    - identifier: memory
+      displayName: Memory
+      resourceType: Memory
+      defaultCount: 64Gi
+      minCount: 32Gi
+      maxCount: 128Gi</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_validation"><a class="anchor" href="#_validation"></a>Validation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To verify the integration is working:
+1.  <strong>Launch a Workbench</strong> using the "Training: NVIDIA A100" profile.
+2.  <strong>Check the Workload:</strong> Run <code>oc get workloads -n &lt;project-name&gt;</code>.
+3.  <strong>Check the Quota:</strong> Run <code>oc describe clusterqueue main-cluster-queue</code> to see the "Used" resources increase.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="kueue.html">Kueue Infrastructure Setup</a></span>
+  <span class="next"><a href="section1.html">Automation Lab</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
