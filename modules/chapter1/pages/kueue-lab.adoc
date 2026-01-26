@@ -7,9 +7,10 @@
 Once the infrastructure is configured, you must create **Hardware Profiles** that users can select in the RHOAI Dashboard.
 
 When integrating with Kueue, **Workload Allocation** changes significantly:
-* **No Manual Selectors:** You should generally avoid adding `nodeSelector` or `tolerations` directly to the profile.
-* **Managed Placement:** Kueue automatically injects the necessary scheduling info based on the `ResourceFlavor`.
-* **Full Resource Definition:** You must define `cpu`, `memory`, and `accelerator` identifiers so Kueue can calculate the total cost of the workload.
+
+ * **No Manual Selectors:** You should generally avoid adding `nodeSelector` or `tolerations` directly to the profile.
+ * **Managed Placement:** Kueue automatically injects the necessary scheduling info based on the `ResourceFlavor`.
+ * **Full Resource Definition:** You must define `cpu`, `memory`, and `accelerator` identifiers so Kueue can calculate the total cost of the workload.
 
 ---
 
@@ -101,6 +102,7 @@ spec:
 
 == Validation
 To verify the integration is working:
-1.  **Launch a Workbench** using the "Training: NVIDIA A100" profile.
-2.  **Check the Workload:** Run `oc get workloads -n <project-name>`.
-3.  **Check the Quota:** Run `oc describe clusterqueue main-cluster-queue` to see the "Used" resources increase.
+
+ 1.  **Launch a Workbench** using the "Training: NVIDIA A100" profile.
+ 2.  **Check the Workload:** Run `oc get workloads -n <project-name>`.
+ 3.  **Check the Quota:** Run `oc describe clusterqueue main-cluster-queue` to see the "Used" resources increase.
