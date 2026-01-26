@@ -128,10 +128,20 @@
 <p>Once the infrastructure is configured, you must create <strong>Hardware Profiles</strong> that users can select in the RHOAI Dashboard.</p>
 </div>
 <div class="paragraph">
-<p>When integrating with Kueue, <strong>Workload Allocation</strong> changes significantly:
-* <strong>No Manual Selectors:</strong> You should generally avoid adding <code>nodeSelector</code> or <code>tolerations</code> directly to the profile.
-* <strong>Managed Placement:</strong> Kueue automatically injects the necessary scheduling info based on the <code>ResourceFlavor</code>.
-* <strong>Full Resource Definition:</strong> You must define <code>cpu</code>, <code>memory</code>, and <code>accelerator</code> identifiers so Kueue can calculate the total cost of the workload.</p>
+<p>When integrating with Kueue, <strong>Workload Allocation</strong> changes significantly:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>No Manual Selectors:</strong> You should generally avoid adding <code>nodeSelector</code> or <code>tolerations</code> directly to the profile.</p>
+</li>
+<li>
+<p><strong>Managed Placement:</strong> Kueue automatically injects the necessary scheduling info based on the <code>ResourceFlavor</code>.</p>
+</li>
+<li>
+<p><strong>Full Resource Definition:</strong> You must define <code>cpu</code>, <code>memory</code>, and <code>accelerator</code> identifiers so Kueue can calculate the total cost of the workload.</p>
+</li>
+</ul>
 </div>
 <hr>
 </div>
@@ -237,10 +247,20 @@ spec:
 <h2 id="_validation"><a class="anchor" href="#_validation"></a>Validation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To verify the integration is working:
-1.  <strong>Launch a Workbench</strong> using the "Training: NVIDIA A100" profile.
-2.  <strong>Check the Workload:</strong> Run <code>oc get workloads -n &lt;project-name&gt;</code>.
-3.  <strong>Check the Quota:</strong> Run <code>oc describe clusterqueue main-cluster-queue</code> to see the "Used" resources increase.</p>
+<p>To verify the integration is working:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Launch a Workbench</strong> using the "Training: NVIDIA A100" profile.</p>
+</li>
+<li>
+<p><strong>Check the Workload:</strong> Run <code>oc get workloads -n &lt;project-name&gt;</code>.</p>
+</li>
+<li>
+<p><strong>Check the Quota:</strong> Run <code>oc describe clusterqueue main-cluster-queue</code> to see the "Used" resources increase.</p>
+</li>
+</ol>
 </div>
 </div>
 </div>
