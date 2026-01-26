@@ -52,30 +52,7 @@ This is the most critical decision for cost and performance. You set *CPU* and *
 ** Set this to prevent a single user from starving the node.
 * *Default:* The pre-filled value the user sees.
 
-.Example Sizing Strategy
-[cols="1,2,1,1,1", options="header"]
-|===
-|Profile Name |Target Use Case |CPU (Req/Lim) |Memory (Req/Lim) |Accelerator
-
-|*Standard*
-|Data exploration, simple ML
-|2 / 4 Cores
-|8GB / 16GB
-|None
-
-|*Training*
-|Deep learning models
-|8 / 16 Cores
-|32GB / 64GB
-|1x NVIDIA GPU
-
-|*Large*
-|LLM Fine-tuning
-|24 / 48 Cores
-|128GB / 256GB
-|2x NVIDIA GPU
-|===
-
+image::resource-limits.png[align="center", title="Node Selectors, Tolerations, and Hardware Profiles"]
 
 ---
 
