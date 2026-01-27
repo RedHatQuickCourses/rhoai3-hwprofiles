@@ -23,7 +23,7 @@ When designing a profile, you need to define three categories of information. Us
 
 * *Name:* The user-facing name (e.g., "NVIDIA A100 - Large").
 * *Description:* Guidance for the user (e.g., "Use this for Large Language Model training").
-* *Visibility:* Decide if this profile is available to *everyone* or *restricted to model serving and workbench deployments*.
+* *Visibility:* Decide if this profile is available to *everyone* or *restricted to model serving or workbench deployments*.
 
 === B. Identifiers & Tolerations (The "Target")
 
@@ -38,7 +38,7 @@ image::selectors-tolerations.png[align="center", title="Node Selectors, Tolerati
 [IMPORTANT]
 .Critical Restriction
 ====
-You *cannot* combine this strategy with Kueue. If you define `tolerations` or `nodeSelectors` in a Hardware Profile, you cannot use the `LocalQueue` allocation strategy. You must choose between *Static Pinning* or *Dynamic Queuing* (next page).
+You *cannot* combine this strategy with Kueue. If you define `tolerations` or `nodeSelectors` in a Hardware Profile, you cannot use the `LocalQueue` allocation strategy. You must choose between *Static Pinning* or *Dynamic Queuing* (kueue section).
 ====
 
 
@@ -52,7 +52,7 @@ This is the most critical decision for cost and performance. You set *CPU* and *
 ** Set this to prevent a single user from starving the node.
 * *Default:* The pre-filled value the user sees.
 
-image::resource-limits.png[align="center", title="Node Selectors, Tolerations, and Hardware Profiles"]
+image::resource-limits.png[align="center", title="Resource Minimums, Maximunms, and Default Allocations"]
 
 ---
 
