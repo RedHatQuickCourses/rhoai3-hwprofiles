@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Course Conclusion: The Industrialized AI Platform :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="kueue-lab.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="hwprofiles.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="gpustrategy.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="placement.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="tiering.html">OpenShift AI Hardware Profile Tiering Strategy</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kueue.html">Kueue Infrastructure Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kueue-lab.html">Hardware Profiles &amp; Kueue</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="summary.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="summary.html">Course Summary</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Course Conclusion: The Industrialized AI Platform</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Congratulations! You have successfully navigated the transition from the "Wild West" of manual resource management to a governed, <strong>Industrialized AI Platform</strong>.</p>
+</div>
+<div class="paragraph">
+<p>By implementing Hardware Profiles, you have replaced support tickets with self-service policy. You have moved from "hoarding" compute to "fair-share" scheduling. Most importantly, you have built a system that maximizes the Return on Investment (ROI) of your most expensive silicon.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_industrialized_architecture_recap"><a class="anchor" href="#_the_industrialized_architecture_recap"></a>The "Industrialized" Architecture Recap</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let&#8217;s review the complete architecture you have built:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>The Physical Layer:</strong> Your nodes are automatically labeled by the <strong>Node Feature Discovery (NFD)</strong> operator, exposing identifiers like <code>nvidia.com/gpu</code>.</p>
+</li>
+<li>
+<p><strong>The Governance Layer:</strong> You created <code>HardwareProfile</code> Custom Resources (CRs) that define strict CPU/Memory limits and target specific hardware identifiers.</p>
+</li>
+<li>
+<p><strong>The Scheduling Layer:</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>For <strong>Fairness</strong>, you integrated with <strong>Kueue</strong> to manage quotas and priorities.</p>
+</li>
+<li>
+<p>For <strong>Isolation</strong>, you used <strong>Taints and Tolerations</strong> to pin specific workloads to dedicated hardware.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>The User Layer:</strong> Data scientists simply select a "T-Shirt Size" from a dropdown menu, oblivious to the complexity underneath.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_strategy_matrix_your_decision_cheat_sheet"><a class="anchor" href="#_the_strategy_matrix_your_decision_cheat_sheet"></a>The Strategy Matrix: Your Decision Cheat Sheet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As you scale your platform, use this matrix to decide which configuration to apply to new hardware or teams.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Goal</th>
+<th class="tableblock halign-left valign-top">Configuration Strategy</th>
+<th class="tableblock halign-left valign-top">Implementation Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Maximize Usage</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Dynamic Queuing</strong> (Kueue)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use the <code>LocalQueue</code> allocation strategy. Allows teams to "borrow" idle quota from others.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Strict Isolation</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Static Pinning</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>nodeSelector</code> and <code>tolerations</code> in the profile. Apply <code>NoSchedule</code> taints to the physical nodes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>High Density (Dev)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Time-Slicing</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configure the GPU Operator to advertise multiple replicas per GPU. Best for interactive notebooks.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Guaranteed Performance</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>MIG (Multi-Instance GPU)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configure A100/H100 GPUs into hardware-isolated partitions. Target the specific MIG identifier (e.g., <code>1g.5gb</code>) in the profile.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Project Security</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scoped Profiles</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create the Hardware Profile CR in a specific user <code>Namespace</code> instead of the global application namespace.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_your_final_checklist"><a class="anchor" href="#_your_final_checklist"></a>Your Final Checklist</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before you declare "Mission Accomplished," ensure your production environment meets these standards:</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Discovery:</strong> NFD is running and correctly labeling all accelerator nodes.</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Definition:</strong> Hardware Profiles are created with explicit <code>resourceLimits</code> to prevent starvation.</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Automation:</strong> Profiles using Kueue do <strong>not</strong> contain conflicting node selectors.</p>
+</li>
+<li>
+<p><i class="fa fa-square-o"></i> <strong>Visibility:</strong> Profiles are correctly scoped (Global vs. Project) based on team access needs.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>Next Steps</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You now possess the blueprint for a scalable AI infrastructure. Your next step is to <strong>audit your current utilization</strong>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Run a utilization report on your current GPU nodes.</p>
+</li>
+<li>
+<p>Identify "zombie" workloads that are reserving resources but not using them.</p>
+</li>
+<li>
+<p>Migrate those users to a "Fair Share" hardware profile today.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p><strong>Welcome to the era of Industrialized AI.</strong></p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="kueue-lab.html">Hardware Profiles &amp; Kueue</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

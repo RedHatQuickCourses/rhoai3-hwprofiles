@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Hardware Profiles in OpenShift AI :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="../index.html">
+    <link rel="next" href="gpustrategy.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="hwprofiles.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="gpustrategy.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="placement.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="tiering.html">OpenShift AI Hardware Profile Tiering Strategy</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kueue.html">Kueue Infrastructure Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kueue-lab.html">Hardware Profiles &amp; Kueue</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="summary.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="hwprofiles.html">Hardware Profiles Guide</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Hardware Profiles in OpenShift AI</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Hardware profiles in Red Hat OpenShift AI act as templates that define specific hardware configurations for user workloads. They allow administrators to create a menu of available compute resources—such as "Small CPU", "Large Memory", or "NVIDIA A100 GPU"—that data scientists can easily select without needing to understand underlying Kubernetes complexities like taints, tolerations, or resource limits.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_are_hardware_profiles"><a class="anchor" href="#_what_are_hardware_profiles"></a>What are Hardware Profiles?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Hardware profiles are <strong>Custom Resources (CRs)</strong> that serve as an abstraction layer between the physical infrastructure and the end-user. Instead of manually requesting "4 CPUs and 16GB RAM" every time, a user selects a profile like "Standard Data Science" which pre-defines these values.</p>
+</div>
+<div class="paragraph">
+<p><strong>Key Benefits:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Governance:</strong> Enforce limits on how much compute a single user can request.</p>
+</li>
+<li>
+<p><strong>Simplicity:</strong> Hide complex Kubernetes node selectors and tolerations behind user-friendly names.</p>
+</li>
+<li>
+<p><strong>Efficiency:</strong> Ensure workloads are scheduled on the correct hardware (e.g., ensuring GPU jobs only go to GPU nodes).</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_to_create_a_hardware_profile"><a class="anchor" href="#_how_to_create_a_hardware_profile"></a>How to Create a Hardware Profile</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When designing a profile, you need to define three categories of information. Use the guide below to make sizing decisions for each category.</p>
+</div>
+<div class="sect2">
+<h3 id="_a_metadata_the_menu_entry"><a class="anchor" href="#_a_metadata_the_menu_entry"></a>A. Metadata (The "Menu" Entry)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name:</strong> The user-facing name (e.g., "NVIDIA A100 - Large").</p>
+</li>
+<li>
+<p><strong>Description:</strong> Guidance for the user (e.g., "Use this for Large Language Model training").</p>
+</li>
+<li>
+<p><strong>Visibility:</strong> Decide if this profile is available to <strong>everyone</strong> or <strong>restricted to model serving or workbench deployments</strong>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_b_identifiers_tolerations_the_target"><a class="anchor" href="#_b_identifiers_tolerations_the_target"></a>B. Identifiers &amp; Tolerations (The "Target")</h3>
+<div class="paragraph">
+<p>This section tells Kubernetes <strong>where</strong> to run the workload.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Identifier:</strong> If targeting a GPU, enter the resource label (e.g., <code>nvidia.com/gpu</code>).</p>
+</li>
+<li>
+<p><strong>Tolerations:</strong> If you have "tainted" your expensive GPU nodes to prevent general workloads from landing there (e.g., <code>key=gpu, effect=NoSchedule</code>), you must add the matching <strong>Toleration</strong> here. This ensures only users selecting this profile can bypass the restriction.</p>
+</li>
+<li>
+<p><strong>Node Selectors:</strong> Use these to pin workloads to specific node labels (e.g., <code>instance-type=p4d.24xlarge</code>).</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img src="_images/selectors-tolerations.png" alt="selectors tolerations">
+</div>
+<div class="title">Figure 1. Node Selectors, Tolerations, and Hardware Profiles</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Critical Restriction</div>
+<div class="paragraph">
+<p>You <strong>cannot</strong> combine this strategy with Kueue. If you define <code>tolerations</code> or <code>nodeSelectors</code> in a Hardware Profile, you cannot use the <code>LocalQueue</code> allocation strategy. You must choose between <strong>Static Pinning</strong> or <strong>Dynamic Queuing</strong> (kueue section).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_c_resource_limits_the_sizing"><a class="anchor" href="#_c_resource_limits_the_sizing"></a>C. Resource Limits (The "Sizing")</h3>
+<div class="paragraph">
+<p>This is the most critical decision for cost and performance. You set <strong>CPU</strong> and <strong>Memory</strong> values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Request (Minimum):</strong> The amount guaranteed to the container.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Set this to the minimum viable amount needed to start the kernel to avoid wasting cluster capacity.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Limit (Maximum):</strong> The hard ceiling.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Set this to prevent a single user from starving the node.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Default:</strong> The pre-filled value the user sees.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img src="_images/resource-limits.png" alt="resource limits">
+</div>
+<div class="title">Figure 2. Resource Minimums, Maximunms, and Default Allocations</div>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enabling_storing_hardware_profiles"><a class="anchor" href="#_enabling_storing_hardware_profiles"></a>Enabling &amp; Storing Hardware Profiles</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_where_is_the_information_stored"><a class="anchor" href="#_where_is_the_information_stored"></a>Where is the information stored?</h3>
+<div class="paragraph">
+<p>The data is stored as a <strong>Custom Resource (CR)</strong> of kind <code>HardwareProfile</code> inside the OpenShift cluster&#8217;s etcd database. It is not a simple ConfigMap; it is a structured API object that the OpenShift AI operator reads to inject settings into user pods.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_to_enable_hardware_profiles"><a class="anchor" href="#_how_to_enable_hardware_profiles"></a>How to Enable Hardware Profiles</h3>
+<div class="paragraph">
+<p>In some versions of OpenShift AI, this feature might be hidden behind a feature flag. To enable it:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Access the <strong>OpenShift Console</strong> (Administrator view).</p>
+</li>
+<li>
+<p>Find the <code>OdhDashboardConfig</code> custom resource.</p>
+</li>
+<li>
+<p>Set the <code>disableHardwareProfiles</code> field to <code>false</code>.</p>
+</li>
+<li>
+<p>Refresh the OpenShift AI dashboard, and the "Hardware profiles" menu item will appear under Settings.</p>
+</li>
+</ol>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_for_accelerators_gpusnpus"><a class="anchor" href="#_using_for_accelerators_gpusnpus"></a>Using for Accelerators (GPUs/NPUs)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To use a hardware profile for accelerators like NVIDIA or Gaudi, follow this workflow:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Install Drivers:</strong> Ensure the NVIDIA GPU Operator (or equivalent) is installed.</p>
+</li>
+<li>
+<p><strong>Verify Detection:</strong> Check that OpenShift nodes report allocatable resources (e.g., <code>nvidia.com/gpu: 8</code>).</p>
+</li>
+<li>
+<p><strong>Create Profile:</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Add a <strong>Resource Identifier</strong> matching the node label (e.g., <code>nvidia.com/gpu</code>).</p>
+</li>
+<li>
+<p>Set the <strong>Count</strong> (e.g., allow users to request 1 or 2 GPUs).</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Associate with Images (Optional):</strong> You can link a hardware profile to specific <strong>Workbench Images</strong>. For example, you can configure the "PyTorch" image to recommend the "NVIDIA GPU" profile, creating a warning if a user tries to run it on a CPU-only node.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Once configured, a data scientist simply selects "NVIDIA GPU" from a dropdown when creating a workbench, and the system automatically handles the complex Kubernetes scheduling in the background.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_governance_global_vs_project_scoped_profiles"><a class="anchor" href="#_governance_global_vs_project_scoped_profiles"></a>Governance: Global vs. Project-Scoped Profiles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Not every team needs access to your most expensive hardware. You can control the visibility of Hardware Profiles by defining where they live in the cluster.</p>
+</div>
+<div class="sect2">
+<h3 id="_global_profiles_public_utility"><a class="anchor" href="#_global_profiles_public_utility"></a>Global Profiles (Public Utility)</h3>
+<div class="paragraph">
+<p>Global profiles are visible to <strong>all users</strong> in the OpenShift AI dashboard. Use these for generic resources (e.g., "Standard CPU", "Shared GPU").</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>How to Configure:</strong> Create the <code>HardwareProfile</code> Custom Resource (CR) in the <strong>dashboard application namespace</strong> (typically <code>redhat-ods-applications</code>).</p>
+</li>
+<li>
+<p><strong>Use Case:</strong> General development, interactive notebooks, introductory training.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_project_scoped_profiles_private_reserve"><a class="anchor" href="#_project_scoped_profiles_private_reserve"></a>Project-Scoped Profiles (Private Reserve)</h3>
+<div class="paragraph">
+<p>Project-scoped profiles are visible <strong>only</strong> to users within a specific Data Science Project. Use these for specialized hardware reserved for advanced teams (e.g., "Finance Team H100").</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>How to Configure:</strong> Create the <code>HardwareProfile</code> CR inside the <strong>user&#8217;s project namespace</strong> (e.g., <code>finance-models-prod</code>).</p>
+</li>
+<li>
+<p><strong>Use Case:</strong> Sensitive workloads, reserved capacity for high-priority projects, hardware with specific regulatory compliance requirements.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To enable the UI to distinguish between these scopes, ensure the dashboard configuration setting <code>disableProjectScoped</code> is set to <code>false</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="../index.html">Home</a></span>
+  <span class="next"><a href="gpustrategy.html">GPU Sharing &amp; MIG</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

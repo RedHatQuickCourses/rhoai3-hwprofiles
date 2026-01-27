@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Maximizing ROI: GPU Sharing &amp; MIG Strategies :: Hardware Governance at Scale with RHOAI Hardware Profiles.</title>
+    <link rel="prev" href="hwprofiles.html">
+    <link rel="next" href="placement.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script>var uiRootPath = '../../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com" target="_blank"><img src="../../../_/img/redhat-logo.png" height="40px" alt="Red Hat"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="../../..">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/RedHatQuickCourses/REPLACEREPONAME/issues" target="_blank">Report Issues</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="rhoai-hwprofiles" data-version="1">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Home</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="hwprofiles.html">Hardware Profiles Guide</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="gpustrategy.html">GPU Sharing &amp; MIG</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="placement.html">Taints &amp; Tolerations</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="tiering.html">OpenShift AI Hardware Profile Tiering Strategy</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kueue.html">Kueue Infrastructure Setup</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kueue-lab.html">Hardware Profiles &amp; Kueue</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="summary.html">Course Summary</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Hardware Governance at Scale with RHOAI Hardware Profiles.</span>
+    <span class="version">1</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Hardware Governance at Scale with RHOAI Hardware Profiles.</a></li>
+    <li><a href="gpustrategy.html">GPU Sharing &amp; MIG</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Maximizing ROI: GPU Sharing &amp; MIG Strategies</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The most expensive resource in your AI platform is often the GPU. Allocating a full NVIDIA A100 (80GB) to a data scientist running a simple Jupyter notebook is a massive waste of capital.</p>
+</div>
+<div class="paragraph">
+<p>Hardware Profiles allow you to unlock <strong>fractional consumption</strong>. By integrating with NVIDIA&#8217;s advanced partitioning features, you can squeeze 4-7x more users onto the same physical hardware.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_two_paths_to_efficiency"><a class="anchor" href="#_two_paths_to_efficiency"></a>Two Paths to Efficiency</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You have two primary mechanisms for sharing NVIDIA GPUs in OpenShift AI. Your Hardware Profile strategy depends on which one you choose.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Comparison of Sharing Strategies</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Feature</th>
+<th class="tableblock halign-left valign-top">Isolation Level</th>
+<th class="tableblock halign-left valign-top">Best Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Time-Slicing</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Software (Shared Memory)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lightweight workloads, dev/test notebooks, oversubscribing resources.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Multi-Instance GPU (MIG)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hardware (Dedicated Memory)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Strict isolation, guaranteed QoS, mixed workloads (e.g., Training vs. Inference).</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_strategy_1_time_slicing_the_oversubscription_model"><a class="anchor" href="#_strategy_1_time_slicing_the_oversubscription_model"></a>Strategy 1: Time-Slicing (The "Oversubscription" Model)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Time-slicing allows multiple pods to share a single GPU by taking turns (interleaving) on the compute engine. This is ideal for interactive workbenches where users spend most of their time coding and only bursts of time executing cells.</p>
+</div>
+<div class="sect2">
+<h3 id="_how_it_works"><a class="anchor" href="#_how_it_works"></a>How it Works</h3>
+<div class="paragraph">
+<p>The NVIDIA GPU Operator advertises a single physical GPU as multiple "replicas" (e.g., 1 GPU appears as 4).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration_steps"><a class="anchor" href="#_configuration_steps"></a>Configuration Steps</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Enable Time-Slicing:</strong> Create a <code>ConfigMap</code> in the GPU Operator namespace defining the replicas (e.g., 4 slices per GPU).</p>
+</li>
+<li>
+<p><strong>Update Cluster Policy:</strong> Configure the GPU Operator to read this map.</p>
+</li>
+<li>
+<p><strong>Create the Hardware Profile:</strong></p>
+<div class="paragraph">
+<p>In this scenario, the resource identifier remains <code>nvidia.com/gpu</code>. The "magic" happens at the node level. You do not need a special identifier in the profile, but you should name it clearly so users know it is shared.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">Hardware Profile for Time-Slicing</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: dashboard.opendatahub.io/v1alpha1
+kind: HardwareProfile
+metadata:
+  name: nvidia-shared-gpu
+spec:
+  displayName: "Shared GPU (Time-Sliced)"
+  description: "Best for notebooks and development. Compute is shared with neighbors."
+  identifiers:
+    - identifier: nvidia.com/gpu
+      count: 1
+  resourceLimits:
+    - name: memory
+      default: "8Gi" # Enforce limits to prevent one user from crashing the shared GPU
+      max: "16Gi"</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>With Time-Slicing, memory is shared. If one user consumes all VRAM, other users on the same GPU will crash (OOM). Always set strict <code>resourceLimits</code> in your profile to mitigate this risk.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_strategy_2_multi_instance_gpu_mig_the_partition_model"><a class="anchor" href="#_strategy_2_multi_instance_gpu_mig_the_partition_model"></a>Strategy 2: Multi-Instance GPU (MIG) (The "Partition" Model)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>MIG physically partitions a supported GPU (like an A100 or H100) into completely isolated instances. A "1g.5gb" slice has its own dedicated memory and compute lanes. A user on Slice A cannot affect the performance of User B on Slice B.</p>
+</div>
+<div class="sect2">
+<h3 id="_how_it_works_2"><a class="anchor" href="#_how_it_works_2"></a>How it Works</h3>
+<div class="paragraph">
+<p>The Node Feature Discovery (NFD) operator detects these partitions and advertises them as <strong>unique resource names</strong> (e.g., <code>nvidia.com/mig-1g.5gb</code>).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration_steps_2"><a class="anchor" href="#_configuration_steps_2"></a>Configuration Steps</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Enable MIG:</strong> Configure the NVIDIA GPU Operator to partition your A100s (e.g., "mixed" or "single" strategy).</p>
+</li>
+<li>
+<p><strong>Identify the Resource Name:</strong> Run <code>oc describe node</code> to find the specific MIG identifier exposed by NFD.</p>
+</li>
+<li>
+<p><strong>Create the Hardware Profile:</strong></p>
+<div class="paragraph">
+<p>Here, you <strong>must</strong> use the specific MIG identifier instead of the generic <code>nvidia.com/gpu</code>.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">Hardware Profile for MIG</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: dashboard.opendatahub.io/v1alpha1
+kind: HardwareProfile
+metadata:
+  name: nvidia-mig-small
+spec:
+  displayName: "Small GPU Slice (MIG 1g.5gb)"
+  description: "Dedicated hardware slice. 5GB vRAM. Good for inference and small models."
+  identifiers:
+    - identifier: nvidia.com/mig-1g.5gb  # &lt;1&gt; The specific MIG slice name
+      count: 1</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Note that the identifier is specific to the slice size. You might create multiple profiles (e.g., "Medium Slice - 2g.10gb", "Large Slice - 3g.20gb").</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_summary_which_profile_do_i_build"><a class="anchor" href="#_summary_which_profile_do_i_build"></a>Summary: Which Profile do I Build?</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Use Time-Slicing Profiles</strong> when you want to maximize density for a large team of developers who are mostly writing code, not training models.</p>
+</li>
+<li>
+<p><strong>Use MIG Profiles</strong> when you need to guarantee performance for inference services or ensure that a "noisy neighbor" cannot crash a critical job.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="hwprofiles.html">Hardware Profiles Guide</a></span>
+  <span class="next"><a href="placement.html">Taints &amp; Tolerations</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <img src="../../../_/img/rhl-logo-red.png" height="40px" alt="Red Hat"  href="https://redhat.com" >
+</footer><script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
