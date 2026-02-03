@@ -78,11 +78,9 @@ In some versions of OpenShift AI, this feature might be hidden behind a feature 
 To use a hardware profile for accelerators like NVIDIA or Gaudi, follow this workflow:
 
 . *Install Drivers:* Ensure the NVIDIA GPU Operator (or equivalent) is installed.
-. *Verify Detection:* Check that OpenShift nodes report allocatable resources (e.g., `nvidia.com/gpu: 8`).
-. *Create Profile:*
+. *Create or edit hardware profile:*
 ** Add a *Resource Identifier* matching the node label (e.g., `nvidia.com/gpu`).
 ** Set the *Count* (e.g., allow users to request 1 or 2 GPUs).
-. *Associate with Images (Optional):* You can link a hardware profile to specific *Workbench Images*. For example, you can configure the "PyTorch" image to recommend the "NVIDIA GPU" profile, creating a warning if a user tries to run it on a CPU-only node.
 
 Once configured, a data scientist simply selects "NVIDIA GPU" from a dropdown when creating a workbench, and the system automatically handles the complex Kubernetes scheduling in the background.
 

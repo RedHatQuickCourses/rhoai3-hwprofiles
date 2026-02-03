@@ -1,4 +1,4 @@
-= Maximizing ROI: GPU Sharing & MIG Strategies
+= GPU Sharing & MIG Strategies
 :navtitle: GPU Sharing & MIG
 :imagesdir: ../images
 
