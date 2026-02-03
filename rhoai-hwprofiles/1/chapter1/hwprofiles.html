@@ -289,10 +289,7 @@
 <p><strong>Install Drivers:</strong> Ensure the NVIDIA GPU Operator (or equivalent) is installed.</p>
 </li>
 <li>
-<p><strong>Verify Detection:</strong> Check that OpenShift nodes report allocatable resources (e.g., <code>nvidia.com/gpu: 8</code>).</p>
-</li>
-<li>
-<p><strong>Create Profile:</strong></p>
+<p><strong>Create or edit hardware profile:</strong></p>
 <div class="ulist">
 <ul>
 <li>
@@ -303,9 +300,6 @@
 </li>
 </ul>
 </div>
-</li>
-<li>
-<p><strong>Associate with Images (Optional):</strong> You can link a hardware profile to specific <strong>Workbench Images</strong>. For example, you can configure the "PyTorch" image to recommend the "NVIDIA GPU" profile, creating a warning if a user tries to run it on a CPU-only node.</p>
 </li>
 </ol>
 </div>
