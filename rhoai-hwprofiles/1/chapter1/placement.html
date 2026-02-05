@@ -212,7 +212,7 @@ metadata:
   annotations:
     opendatahub.io/display-name: "Training: Dedicated A100"
     opendatahub.io/description: "Full A100 access on isolated nodes."
-    opendatahub.io/dashboard-feature-visibility: '["workbench","pipelines"]'
+    opendatahub.io/dashboard-feature-visibility: '["model-serving"]'
 spec:
   enabled: true
   identifiers:
@@ -221,7 +221,7 @@ spec:
       resourceType: Accelerator
       defaultCount: 1
       minCount: 1
-      maxCount: 8
+      maxCount: 2
     - identifier: cpu
       displayName: CPU
       resourceType: CPU
@@ -234,17 +234,16 @@ spec:
       defaultCount: 128Gi
       minCount: 64Gi
       maxCount: 256Gi
-  nodeSelector:
-    node-role.kubernetes.io/training-node: "true"
-    nvidia.com/gpu.product: "A100-SXM4-80GB"
-  tolerations:
-    - key: "workload"
-      operator: "Equal"
-      value: "training"
-      effect: "NoSchedule"
-    - key: "nvidia.com/gpu"
-      operator: "Exists"
-      effect: "NoSchedule"</code></pre>
+  scheduling:
+    node:
+      nodeSelector:
+        nvidia.com/gpu.product: A100-SXM4-80GB
+      tolerations:
+        - effect: NoSchedule
+          key: workload
+          operator: Equal
+          value: training
+    type: Node</code></pre>
 </div>
 </div>
 </div>
