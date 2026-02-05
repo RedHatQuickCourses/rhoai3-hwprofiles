@@ -2,7 +2,7 @@
 :navtitle: Taints & Tolerations
 :imagesdir: ../images
 
-While *Kueue* manages "who gets to run next" (Fairness), *Taints and Node Selectors* manage "exactly where it runs" (Placement). This strategy is often called "Pinning."
+*Taints and Node Selectors* manage "exactly where workloads run" (Placement). This strategy is often called "Pinning."
 
 You typically use this method when you need strict isolation—for example, ensuring that a specific team (like "Finance") is the _only_ team that can run workloads on a specific set of expensive nodes (like "H100 GPUs"), or to ensure that generic workloads do not accidentally clog up your high-performance hardware.
 

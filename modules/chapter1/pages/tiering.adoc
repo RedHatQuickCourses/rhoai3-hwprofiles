@@ -1,4 +1,4 @@
-= OpenShift AI Hardware Profile Tiering Strategy
+= Hardware Profile Tiering Strategy
 :author: Platform Engineering Team
 :description: Standardized hardware profiles for RHOAI cluster management.
 :toc: left
@@ -8,6 +8,10 @@ This document defines the standard `HardwareProfile` tiers for the OpenShift AI 
 
 [IMPORTANT]
 All profiles must be applied to the `redhat-ods-applications` namespace to be visible in the RHOAI Dashboard.
+
+To view active hardware profiles in OpenShift - from the main dashboard url,  substitute the following replacing dashboard
+
+/k8s/ns/redhat-ods-applications/infrastructure.opendatahub.io~v1~HardwareProfile
 
 == Tier 1: General Purpose (CPU Only)
 These profiles are for standard exploratory data science, documentation, and light development.
@@ -52,7 +56,7 @@ metadata:
   annotations:
     opendatahub.io/display-name: "CPU: Medium"
     opendatahub.io/description: "Standard: 4-8 CPU, 16-32GiB RAM"
-    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
+    opendatahub.io/dashboard-feature-visibility: '[]'
 spec:
   enabled: true
   identifiers:
@@ -128,11 +132,25 @@ spec:
     - identifier: cpu
       displayName: CPU
       resourceType: CPU
-      defaultCount: 4
-      minCount: 2
-      maxCount: 8
-  nodeSelector:
-    nvidia.com/device-plugin.config: "time-slicing-config"
+      defaultCount: 8
+      minCount: 4
+      maxCount: 16
+    - identifier: memory
+      displayName: Memory
+      resourceType: Memory
+      defaultCount: 32Gi
+      minCount: 16Gi
+      maxCount: 64Gi
+  scheduling:
+    node:
+      nodeSelector:
+        nvidia.com/gpu.product: nvidia-shared-v100
+      tolerations:
+        - effect: NoSchedule
+          key: workload
+          operator: Equal
+          value: training
+    type: Node
 ----
 
 === Isolated Partition (MIG 1g.5gb)
@@ -156,6 +174,28 @@ spec:
       defaultCount: 1
       minCount: 1
       maxCount: 1
+    - identifier: cpu
+      displayName: CPU
+      resourceType: CPU
+      defaultCount: 8
+      minCount: 4
+      maxCount: 16
+    - identifier: memory
+      displayName: Memory
+      resourceType: Memory
+      defaultCount: 32Gi
+      minCount: 16Gi
+      maxCount: 64Gi
+  scheduling:
+    node:
+      nodeSelector:
+        nvidia.com/gpu.product: nvidia-mig-sliced
+      tolerations:
+        - effect: NoSchedule
+          key: workload
+          operator: Equal
+          value: training
+    type: Node
 ----
 
 == Tier 4: Training & Intensive Workloads
@@ -171,7 +211,7 @@ metadata:
   annotations:
     opendatahub.io/display-name: "Training: Dedicated A100"
     opendatahub.io/description: "Full A100 access on isolated nodes."
-    opendatahub.io/dashboard-feature-visibility: '["workbench","pipelines"]'
+    opendatahub.io/dashboard-feature-visibility: '[]'
 spec:
   enabled: true
   identifiers:
@@ -193,15 +233,18 @@ spec:
       defaultCount: 128Gi
       minCount: 64Gi
       maxCount: 256Gi
-  nodeSelector:
-    node-role.kubernetes.io/training-node: "true"
-    nvidia.com/gpu.product: "A100-SXM4-80GB"
-  tolerations:
-    - key: "workload"
-      operator: "Equal"
-      value: "training"
-      effect: "NoSchedule"
-    - key: "nvidia.com/gpu"
-      operator: "Exists"
-      effect: "NoSchedule"
+  scheduling:
+    node:
+      nodeSelector:
+        node-role.kubernetes.io/training-node: "true"
+        nvidia.com/gpu.product: "A100-SXM4-80GB"
+      tolerations:
+        - key: "workload"
+          operator: "Equal"
+          value: "training"
+          effect: "NoSchedule"
+        - key: "nvidia.com/gpu"
+          operator: "Exists"
+          effect: "NoSchedule"
+    type: Node
 ----
