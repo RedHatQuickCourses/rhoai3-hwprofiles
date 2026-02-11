@@ -1,5 +1,5 @@
 site:
-  title: Hardware Governance at Scale with RHOAI Hardware Profiles. 
+  title: From Hoarding to Governance at Scale with RHOAI Hardware Profiles
   start_page: rhoai-hwprofiles::index.adoc
 
 content:

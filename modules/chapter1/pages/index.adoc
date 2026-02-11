@@ -1,4 +1,4 @@
-= The Compute Supply Chain: From Hoarding to Governance
+= From Hoarding to Governance at Scale with RHOAI Hardware Profiles
 :navtitle: Introduction to Hardware Profiles
 :imagesdir: ../images
 
