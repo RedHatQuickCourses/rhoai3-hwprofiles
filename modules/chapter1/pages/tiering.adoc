@@ -6,12 +6,15 @@
 == Overview
 This document defines the standard `HardwareProfile` tiers for the OpenShift AI environment. These profiles use the `v1` unified identifier schema to ensure compatibility with both the OpenShift AI Dashboard and resource management through Kueue.
 
+image::tiered_hardware.png[align="center", title="Hardware profiles - A Tiered Approach to Allocation"]
+
+
 [IMPORTANT]
 All profiles must be applied to the `redhat-ods-applications` namespace to be visible in the RHOAI Dashboard.
 
-To view active hardware profiles in OpenShift - from the main dashboard url,  substitute the following replacing dashboard
+//  To view active hardware profiles in OpenShift - from the main dashboard url,  substitute the following replacing dashboard
 
-/k8s/ns/redhat-ods-applications/infrastructure.opendatahub.io~v1~HardwareProfile
+// /k8s/ns/redhat-ods-applications/infrastructure.opendatahub.io~v1~HardwareProfile
 
 == Tier 1: General Purpose (CPU Only)
 These profiles are for standard exploratory data science, documentation, and light development.
