@@ -77,7 +77,7 @@ spec:
       maxCount: 32Gi
 ----
 
-== Tier 2: Data Engineering & Prep
+== Data Engineering & Prep
 Designed for high-memory workloads such as heavy Pandas processing or Spark-based ETL.
 
 [source,yaml]
@@ -108,7 +108,7 @@ spec:
       maxCount: 128Gi
 ----
 
-== Tier 3: Accelerated Computing (NVIDIA GPU)
+== Tier 2: Accelerated Computing (NVIDIA GPU)
 GPU profiles are tiered based on whether they are shared (sliced) or dedicated (isolated).
 
 === Shared GPU (Time-Slicing)
@@ -201,7 +201,7 @@ spec:
     type: Node
 ----
 
-== Tier 4: Training & Intensive Workloads
+== Tier 3: Training & Intensive Workloads
 These profiles use strict node placement to ensure jobs run on optimized hardware without interference.
 
 [source,yaml]
