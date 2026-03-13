@@ -38,7 +38,7 @@ Before you can create queues or link them to Hardware Profiles, the cluster admi
 Kueue is not installed by default with OpenShift.
 
  . Log in to the OpenShift Container Platform web console as a `cluster-admin`.
- . Navigate to **Operators** -> **OperatorHub**.
+ . Navigate to **Ecosystem** -> **Software Catalog**.
  . Search for the **Red Hat build of Kueue** Operator and install it using the default settings.
 
 === Step 2: Configure the DataScienceCluster (DSC)
@@ -81,4 +81,4 @@ When `disableKueue` is set to `false`, RHOAI will automatically configure new pr
 ====
 
 == Next Steps
-With the infrastructure components installed and the RHOAI dashboard configured, your cluster is now ready to handle intelligent scheduling. In the next module, we will put this into practice by building the physical queues, setting up hardware profiles, and executing prioritized workloads.
+With the infrastructure components installed and the RHOAI dashboard configured, your cluster is now ready to handle intelligent scheduling. In the next module, we will put this into practice by building the physical queues, and executing prioritized workloads.

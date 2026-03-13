@@ -40,12 +40,12 @@ We need to define the physical hardware profile (the `ResourceFlavor`) and the g
 .Create `infrastructure.yaml`
 [source,yaml]
 ----
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ResourceFlavor
 metadata:
   name: default-flavor
 ---
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ClusterQueue
 metadata:
   name: shared-cluster-queue
@@ -76,7 +76,7 @@ Users do not submit jobs to the cluster queue. They submit jobs to a `LocalQueue
 .Create `team-queues.yaml`
 [source,yaml]
 ----
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: LocalQueue
 metadata:
   namespace: ai-team-a
@@ -84,7 +84,7 @@ metadata:
 spec:
   clusterQueue: shared-cluster-queue
 ---
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: LocalQueue
 metadata:
   namespace: ai-team-b
@@ -107,14 +107,14 @@ Not all AI jobs are equal. We will create two priority tiers. When the cluster i
 .Create `priorities.yaml`
 [source,yaml]
 ----
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: WorkloadPriorityClass
 metadata:
   name: low-priority
 value: 100
 description: "Standard background exploration"
 ---
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: WorkloadPriorityClass
 metadata:
   name: high-priority
