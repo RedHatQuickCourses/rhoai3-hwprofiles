@@ -33,14 +33,6 @@ As you scale your platform, use this matrix to decide which configuration to app
 |*Static Pinning*
 |Use `nodeSelector` and `tolerations` in the profile. Apply `NoSchedule` taints to the physical nodes.
 
-|*High Density (Dev)*
-|*Time-Slicing*
-|Configure the GPU Operator to advertise multiple replicas per GPU. Best for interactive notebooks.
-
-|*Guaranteed Performance*
-|*MIG (Multi-Instance GPU)*
-|Configure A100/H100 GPUs into hardware-isolated partitions. Target the specific MIG identifier (e.g., `1g.5gb`) in the profile.
-
 |*Project Security*
 |*Scoped Profiles*
 |Create the Hardware Profile CR in a specific user `Namespace` instead of the global application namespace.

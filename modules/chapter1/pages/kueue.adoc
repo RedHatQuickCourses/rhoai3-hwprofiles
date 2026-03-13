@@ -1,96 +1,84 @@
-= Efficient Resource Management with Kueue & RHOAI
-:navtitle: Kueue Infrastructure Setup
-:toc: left
-:source-highlighter: rouge
+= Understanding and Enabling Kueue in OpenShift AI
+:navtitle: Kueue Architecture & Setup
+:imagesdir: ../images
 
-== Overview
-Managing expensive compute resources like GPUs often leads to a "feast or famine" scenario. **Kueue** solves this by introducing a cloud-native job queuing system that acts as a traffic controller for your cluster.
+Managing expensive compute resources like GPUs often leads to a "feast or famine" scenario. One team might hoard hardware they aren't actively using, while another team waits indefinitely in a pending state. 
 
-In Red Hat OpenShift AI (RHOAI), **Hardware Profiles** serve as the bridge between user workloads and this queuing system. Instead of defining raw Kubernetes resources, users select a profile, and Kueue ensures the workload runs only when quota is available.
+*Kueue* solves this by introducing a cloud-native job queuing system that acts as an intelligent traffic controller for your cluster. Rather than failing a job when resources are full, Kueue holds the workload in a queue and schedules it the moment the required quota becomes available. 
 
+In Red Hat OpenShift AI (RHOAI), **Hardware Profiles** serve as the bridge to this queuing system. Instead of writing complex Kubernetes deployment manifests, users select a profile, and Kueue ensures the workload runs smoothly based on fair-sharing rules and quotas.
 
+== 1. The Kueue Architecture
 
-=== Key Concepts
-* **ResourceFlavor (Hardware):** Defines *what* hardware allows (e.g., "Standard Node" vs "A100 GPU Node").
-* **ClusterQueue (Quotas):** Defines *how much* resource is available globally (e.g., "Total 4 GPUs").
-* **LocalQueue (Entry Point):** The namespace-level bucket where users submit jobs.
+To effectively use Kueue, you must understand its three core architectural components. Together, these pieces translate physical infrastructure into governed, consumable quotas.
+
+=== ResourceFlavor (The Hardware)
+A `ResourceFlavor` represents the distinct types of compute available in your cluster. It maps to specific node labels and taints.
+
+ * *Example:* You might have a `default-flavor` for standard CPU nodes and an `a100-flavor` that specifically targets nodes with `nvidia.com/gpu.product: A100` labels.
+
+=== ClusterQueue (The Global Quota)
+A `ClusterQueue` acts as a cluster-wide pool of resources. It dictates *how much* of a specific `ResourceFlavor` can be consumed across the entire OpenShift environment.
+
+ * *Example:* A `ClusterQueue` might dictate a strict limit of 4 NVIDIA GPUs and 100 CPUs for all data science workloads. 
+ * *Fair Sharing (Cohorts):* Multiple `ClusterQueues` can be grouped into a "Cohort", allowing different teams to borrow unused capacity from one another dynamically.
+
+=== LocalQueue (The Entry Point)
+A `LocalQueue` is a namespace-scoped bucket where users actually submit their jobs. It acts as a bridge, pointing workloads from a specific user project up to the global `ClusterQueue`.
+
+ * *Example:* When an OpenShift AI user selects a "Local Queue" strategy in a Hardware Profile, their workbench is submitted to this namespace-level queue.
 
 ---
 
-== Phase 1: Administrator Setup (Infrastructure)
+== 2. Installing and Enabling Kueue in RHOAI
 
-To enable this architecture, the cluster administrator must define the physical hardware properties and the logical quotas.
+Before you can create queues or link them to Hardware Profiles, the cluster administrator must install the necessary Operators and configure the RHOAI control plane to manage Kueue.
 
-=== 1. Activate Kueue for the Project
-Kueue uses an "opt-in" model. You must label the data science project to enable the webhook.
+=== Step 1: Install the Kueue Operator
+Kueue is not installed by default with OpenShift.
 
-[source,bash]
-----
-# Replace with your target namespace (e.g., ai-team-a)
-oc label namespace ai-team-a kueue.openshift.io/managed=true
-----
+ . Log in to the OpenShift Container Platform web console as a `cluster-admin`.
+ . Navigate to **Operators** -> **OperatorHub**.
+ . Search for the **Red Hat build of Kueue** Operator and install it using the default settings.
 
-=== 2. Define ResourceFlavors (The Hardware)
-Create flavors to represent the distinct types of compute available.
+=== Step 2: Configure the DataScienceCluster (DSC)
+Next, you must instruct the OpenShift AI Operator to manage the Kueue component.
 
-[source,yaml]
-----
-apiVersion: kueue.x-k8s.io/v1beta1
-kind: ResourceFlavor
-metadata:
-  name: default-flavor # Standard CPU nodes
----
-apiVersion: kueue.x-k8s.io/v1beta1
-kind: ResourceFlavor
-metadata:
-  name: a100-flavor # High-performance GPU nodes
-spec:
-  nodeLabels:
-    nvidia.com/gpu.product: "A100-SXM4-80GB"
-  tolerations:
-    - key: "nvidia.com/gpu"
-      operator: "Exists"
-      effect: "NoSchedule"
-----
-
-=== 3. Configure the ClusterQueue (The Quota)
-Set the hard limits for your cluster. In this example, we define quotas for CPU, Memory, and NVIDIA GPUs.
+ . Navigate to **Operators** -> **Installed Operators** -> **Red Hat OpenShift AI**.
+ . Click the **Data Science Cluster** tab and select your active `DataScienceCluster` resource (e.g., `default-dsc`).
+ . Select the **YAML** tab.
+ . Ensure the `kueue` component's `managementState` is set to `Managed`:
 
 [source,yaml]
 ----
-apiVersion: kueue.x-k8s.io/v1beta1
-kind: ClusterQueue
-metadata:
-  name: main-cluster-queue
 spec:
-  namespaceSelector: {} # Applies to all managed namespaces
-  resourceGroups:
-    - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
-      flavors:
-        - name: default-flavor
-          resources:
-            - name: "cpu"
-              nominalQuota: "100"
-            - name: "memory"
-              nominalQuota: "500Gi"
-        - name: a100-flavor
-          resources:
-            - name: "nvidia.com/gpu"
-              nominalQuota: "4" # Total available A100s
+  components:
+    kueue:
+      managementState: Managed
 ----
+. Click **Save**.
 
-=== 4. Create the LocalQueue (The Bridge)
-Create a queue inside the user's namespace that points to the global ClusterQueue.
+=== Step 3: Enable Kueue in the RHOAI Dashboard
+Finally, you must expose Kueue features within the OpenShift AI user interface so that administrators can select Local Queues when creating Hardware Profiles.
+
+ . Navigate to **Home** -> **API Explorer** in the OpenShift console.
+ . Search for `OdhDashboardConfig` and click on the custom resource.
+ . Select the `odh-dashboard-config` instance in the `redhat-ods-applications` namespace.
+ . Select the **YAML** tab.
+ . Under `spec.dashboardConfig`, set the `disableKueue` flag to `false`:
 
 [source,yaml]
 ----
-apiVersion: kueue.x-k8s.io/v1beta1
-kind: LocalQueue
-metadata:
-  name: default-queue
-  namespace: ai-team-a
-  annotations:
-    kueue.x-k8s.io/default-queue: "true" # Auto-assigns workloads to this queue
 spec:
-  clusterQueue: main-cluster-queue
+  dashboardConfig:
+    disableKueue: false
 ----
+ . Click **Save**. 
+
+[NOTE]
+====
+When `disableKueue` is set to `false`, RHOAI will automatically configure new projects for Kueue management by applying the required namespace labels and generating a default local queue.
+====
+
+== Next Steps
+With the infrastructure components installed and the RHOAI dashboard configured, your cluster is now ready to handle intelligent scheduling. In the next module, we will put this into practice by building the physical queues, setting up hardware profiles, and executing prioritized workloads.

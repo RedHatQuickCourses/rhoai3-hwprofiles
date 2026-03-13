@@ -1,108 +1,249 @@
-= Deploying Kueue-Aware Hardware Profiles
-:navtitle: Hardware Profiles & Kueue
-:toc: left
-:source-highlighter: rouge
+= Lab: Intelligent Workload Management with Kueue
+:navtitle: Lab: Kueue Workload Management
+:imagesdir: ../images
 
-== Overview
-Once the infrastructure is configured, you must create **Hardware Profiles** that users can select in the RHOAI Dashboard.
+== Objective
+In an unmanaged "Wild West" cluster, if your hardware has 4 GPUs and users submit jobs requiring 6 GPUs, the cluster destabilizes. Pods get stuck in crash loops, resources are fragmented, and nobody gets their work done. 
 
-When integrating with Kueue, **Workload Allocation** changes significantly:
+In this lab, you will implement **Kueue** to act as your platform's traffic controller. You will create a scenario of intentional resource scarcity to prove two critical outcomes:
 
- * **No Manual Selectors:** You should generally avoid adding `nodeSelector` or `tolerations` directly to the profile.
- * **Managed Placement:** Kueue automatically injects the necessary scheduling info based on the `ResourceFlavor`.
- * **Full Resource Definition:** You must define `cpu`, `memory`, and `accelerator` identifiers so Kueue can calculate the total cost of the workload.
+ 1. **Preventing Crashes:** Jobs that exceed capacity wait patiently in a queue instead of failing.
+ 2. **The VIP Lane:** High-priority jobs jump ahead of low-priority jobs in the queue.
+
+== Prerequisites
+
+ * **Red Hat OpenShift AI 3.2+** installed.
+ * Kueue is installed and its `managementState` is set to `Managed` in the Data Science Cluster.
+ * You are logged into the `oc` CLI with `cluster-admin` privileges.
 
 ---
 
-== Profile Templates
+== Step 1: Prepare the Factory Floor (Namespaces)
+First, we will simulate a multi-tenant environment by creating two distinct project namespaces for competing teams. We must also label these namespaces so Kueue's admission controller knows to monitor them.
 
-Use the following templates to create profiles in the `redhat-ods-applications` namespace.
+[source,bash]
+----
+# Create namespaces for two competing teams
+oc new-project ai-team-a
+oc new-project ai-team-b
 
-=== 1. Standard CPU Profile
-This profile is for general data science work (JupyterLab, Pandas). It maps to the `default-flavor`.
+# Enable Kueue management on these namespaces
+oc label namespace ai-team-a kueue.openshift.io/managed=true
+oc label namespace ai-team-b kueue.openshift.io/managed=true
+----
 
+---
+
+== Step 2: Define the Global Quota (Cluster-Scope)
+We need to define the physical hardware profile (the `ResourceFlavor`) and the global maximum limit (the `ClusterQueue`). For this lab, we will simulate an expensive hardware pool by artificially capping our entire cluster queue at **4 CPUs**.
+
+.Create `infrastructure.yaml`
 [source,yaml]
 ----
-apiVersion: infrastructure.opendatahub.io/v1
-kind: HardwareProfile
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
 metadata:
-  name: kueue-standard-cpu
-  namespace: redhat-ods-applications
-  annotations:
-    opendatahub.io/display-name: "Standard CPU (Queued)"
-    opendatahub.io/description: "2-4 vCPU, 8-16GB RAM. Managed by Kueue."
-    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
+  name: default-flavor
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: shared-cluster-queue
 spec:
-  enabled: true
-  # Handover control to the LocalQueue we created earlier
-  managementState: "Managed"
-  location:
-    localQueue: "default-queue"
-    
-  identifiers:
-    - identifier: cpu
-      displayName: CPU
-      resourceType: CPU
-      defaultCount: 2
-      minCount: 2
-      maxCount: 4
-    - identifier: memory
-      displayName: Memory
-      resourceType: Memory
-      defaultCount: 8Gi
-      minCount: 8Gi
-      maxCount: 16Gi
+  namespaceSelector: {} # Monitors all namespaces with the managed label
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: "default-flavor"
+      resources:
+      - name: "cpu"
+        nominalQuota: 4 # The absolute ceiling for this queue
+      - name: "memory"
+        nominalQuota: 8Gi
 ----
 
-=== 2. High-Performance A100 Training Profile
-This profile requests a GPU. Kueue will intercept this request, match it to the `a100-flavor` (which has the GPU quota), and schedule it only when a GPU is free.
+.Apply the configuration
+[source,bash]
+----
+oc apply -f infrastructure.yaml
+----
 
-**Note:** We include CPU and Memory identifiers to ensure the training container has sufficient system resources to drive the GPU.
+---
 
+== Step 3: Define Team Access (Namespace-Scope)
+Users do not submit jobs to the cluster queue. They submit jobs to a `LocalQueue` inside their own project. This acts as their entry point into the global pool.
+
+.Create `team-queues.yaml`
 [source,yaml]
 ----
-apiVersion: infrastructure.opendatahub.io/v1
-kind: HardwareProfile
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
 metadata:
-  name: kueue-training-a100
-  namespace: redhat-ods-applications
-  annotations:
-    opendatahub.io/display-name: "Training: NVIDIA A100"
-    opendatahub.io/description: "High-performance training node. 1 GPU, 12 CPUs, 64GB RAM."
-    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
+  namespace: ai-team-a
+  name: team-a-queue
 spec:
-  enabled: true
-  managementState: "Managed"
-  location:
-    localQueue: "default-queue"
-
-  identifiers:
-    # 1. The Accelerator Request (Triggers the A100 Flavor)
-    - identifier: "nvidia.com/gpu"
-      displayName: "NVIDIA A100 GPU"
-      resourceType: Accelerator
-      defaultCount: 1
-      minCount: 1
-      maxCount: 2
-      
-    # 2. The System Resource Requests
-    - identifier: cpu
-      displayName: CPU
-      resourceType: CPU
-      defaultCount: 12
-      minCount: 6
-      maxCount: 24
-    - identifier: memory
-      displayName: Memory
-      resourceType: Memory
-      defaultCount: 64Gi
-      minCount: 32Gi
-      maxCount: 128Gi
+  clusterQueue: shared-cluster-queue
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  namespace: ai-team-b
+  name: team-b-queue
+spec:
+  clusterQueue: shared-cluster-queue
 ----
 
-== Validation
-To verify the integration is working:
+.Apply the configuration
+[source,bash]
+----
+oc apply -f team-queues.yaml
+----
 
- 1.  **Launch a Workbench** using the "Training: NVIDIA A100" profile.
- 2.  **Check the Workload:** Run `oc get workloads -n <project-name>`.
- 3.  **Check the Quota:** Run `oc describe clusterqueue main-cluster-queue` to see the "Used" resources increase.
+---
+
+== Step 4: Configure the "VIP" Priorities
+Not all AI jobs are equal. We will create two priority tiers. When the cluster is full, Kueue uses these tiers to determine who gets admitted next.
+
+.Create `priorities.yaml`
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: low-priority
+value: 100
+description: "Standard background exploration"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: high-priority
+value: 1000
+description: "Critical production training runs"
+----
+
+.Apply the configuration
+[source,bash]
+----
+oc apply -f priorities.yaml
+----
+
+---
+
+== Step 5: The "Resource Contention" Experiment
+To see the Allocation Engine in action, we will submit three jobs. Combined, they require **12 CPUs**, but our quota only allows **4 CPUs**.
+
+* **Job 1 (Team B, Low Priority, 4 CPUs):** Starts immediately. Consumes 100% of the quota for 60 seconds.
+* **Job 2 (Team B, Low Priority, 4 CPUs):** Submitted second. Will be queued (Suspended) because the quota is full.
+* **Job 3 (Team A, High Priority, 4 CPUs):** Submitted last. Will be queued, but will **jump ahead** of Job 2 because of its higher priority class.
+
+.Run this entire block in your terminal
+[source,bash]
+----
+# 1. Submit Job 1 (Consumes the quota)
+oc create -f - <<EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lab-job-1-low
+  namespace: ai-team-b
+  labels:
+    kueue.x-k8s.io/queue-name: team-b-queue
+    kueue.x-k8s.io/priority-class: low-priority
+spec:
+  suspend: true # Required for Kueue to manage the job's startup
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: bash:5
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: 4
+      restartPolicy: Never
+EOF
+----
+.Run this entire block in your terminal
+[source,bash]
+----
+# 2. Submit Job 2 (Enters the queue behind Job 1)
+oc create -f - <<EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lab-job-2-low
+  namespace: ai-team-b
+  labels:
+    kueue.x-k8s.io/queue-name: team-b-queue
+    kueue.x-k8s.io/priority-class: low-priority
+spec:
+  suspend: true
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: bash:5
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: 4
+      restartPolicy: Never
+EOF
+----
+
+.Run this entire block in your terminal
+[source,bash]
+----
+# 3. Submit Job 3 (The VIP Line Jumper)
+oc create -f - <<EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lab-job-3-high
+  namespace: ai-team-a
+  labels:
+    kueue.x-k8s.io/queue-name: team-a-queue
+    kueue.x-k8s.io/priority-class: high-priority
+spec:
+  suspend: true
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: bash:5
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: 4
+      restartPolicy: Never
+EOF
+----
+
+---
+
+== Step 6: Verification and Observation
+Observe how Kueue handles the contention without crashing the cluster.
+
+.1. View the Workloads via CLI
+Run the following command immediately after submitting the jobs:
+[source,bash]
+----
+oc get workloads -A
+----
+* **Observation:** `lab-job-1-low` will show as `Admitted`. The other two will show as `Pending`. Notice that there are no failed pod errors or Out of Memory (OOM) crashes on your nodes.
+
+.2. View the Priority Jump
+Run the workload check again after 60 seconds (when Job 1 finishes).
+[source,bash]
+----
+oc get workloads -A
+----
+* **Observation:** `lab-job-3-high` will transition to `Admitted`, while `lab-job-2-low` remains `Pending`. Kueue intelligently evaluated the queue and promoted the high-priority job from Team A to run next.
+
+.3. Visualize in OpenShift AI
+* Log in to the RHOAI Dashboard.
+* In the left-hand menu, navigate to **Distributed Workloads** -> **Resource Management**.
+* You will see a visual representation of your `shared-cluster-queue`, showing the 4 CPU limit, current utilization, and the exact order of the pending queue. 
+
+By establishing this queueing mechanism, you ensure your hardware is never idle, your cluster never crashes from over-subscription, and your most critical business workloads always run first.
