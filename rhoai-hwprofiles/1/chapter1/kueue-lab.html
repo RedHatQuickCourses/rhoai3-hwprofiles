@@ -174,12 +174,12 @@ oc label namespace ai-team-b kueue.openshift.io/managed=true</code></pre>
 <div class="listingblock">
 <div class="title">Create <code>infrastructure.yaml</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta2
 kind: ResourceFlavor
 metadata:
   name: default-flavor
 ---
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ClusterQueue
 metadata:
   name: shared-cluster-queue
@@ -214,7 +214,7 @@ spec:
 <div class="listingblock">
 <div class="title">Create <code>team-queues.yaml</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta2
 kind: LocalQueue
 metadata:
   namespace: ai-team-a
@@ -222,7 +222,7 @@ metadata:
 spec:
   clusterQueue: shared-cluster-queue
 ---
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: LocalQueue
 metadata:
   namespace: ai-team-b
@@ -249,14 +249,14 @@ spec:
 <div class="listingblock">
 <div class="title">Create <code>priorities.yaml</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta2
 kind: WorkloadPriorityClass
 metadata:
   name: low-priority
 value: 100
 description: "Standard background exploration"
 ---
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: WorkloadPriorityClass
 metadata:
   name: high-priority
