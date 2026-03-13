@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Efficient Resource Management with Kueue &amp; RHOAI :: From Hoarding to Governance at Scale with RHOAI Hardware Profiles</title>
+    <title>Understanding and Enabling Kueue in OpenShift AI :: From Hoarding to Governance at Scale with RHOAI Hardware Profiles</title>
     <link rel="prev" href="tiering.html">
     <link rel="next" href="kueue-lab.html">
     <meta name="generator" content="Antora 3.1.3">
@@ -56,10 +56,10 @@
     <a class="nav-link" href="tiering.html">Hardware Profile Tiering Strategy</a>
   </li>
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="kueue.html">Kueue Infrastructure Setup</a>
+    <a class="nav-link" href="kueue.html">Kueue Architecture &amp; Setup</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="kueue-lab.html">Hardware Profiles &amp; Kueue</a>
+    <a class="nav-link" href="kueue-lab.html">Lab: Kueue Workload Management</a>
   </li>
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="summary.html">Course Summary</a>
@@ -95,7 +95,7 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">From Hoarding to Governance at Scale with RHOAI Hardware Profiles</a></li>
-    <li><a href="kueue.html">Kueue Infrastructure Setup</a></li>
+    <li><a href="kueue.html">Kueue Architecture &amp; Setup</a></li>
   </ul>
 </nav>
 </div>
@@ -104,46 +104,64 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Efficient Resource Management with Kueue &amp; RHOAI</h1>
-<div id="toc" class="toc">
-<div id="toctitle">Table of Contents</div>
-<ul class="sectlevel1">
-<li><a href="#_overview">Overview</a>
-<ul class="sectlevel2">
-<li><a href="#_key_concepts">Key Concepts</a></li>
-</ul>
-</li>
-<li><a href="#_phase_1_administrator_setup_infrastructure">Phase 1: Administrator Setup (Infrastructure)</a>
-<ul class="sectlevel2">
-<li><a href="#_1_activate_kueue_for_the_project">1. Activate Kueue for the Project</a></li>
-<li><a href="#_2_define_resourceflavors_the_hardware">2. Define ResourceFlavors (The Hardware)</a></li>
-<li><a href="#_3_configure_the_clusterqueue_the_quota">3. Configure the ClusterQueue (The Quota)</a></li>
-<li><a href="#_4_create_the_localqueue_the_bridge">4. Create the LocalQueue (The Bridge)</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="sect1">
-<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<h1 class="page">Understanding and Enabling Kueue in OpenShift AI</h1>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Managing expensive compute resources like GPUs often leads to a "feast or famine" scenario. <strong>Kueue</strong> solves this by introducing a cloud-native job queuing system that acts as a traffic controller for your cluster.</p>
+<p>Managing expensive compute resources like GPUs often leads to a "feast or famine" scenario. One team might hoard hardware they aren&#8217;t actively using, while another team waits indefinitely in a pending state.</p>
 </div>
 <div class="paragraph">
-<p>In Red Hat OpenShift AI (RHOAI), <strong>Hardware Profiles</strong> serve as the bridge between user workloads and this queuing system. Instead of defining raw Kubernetes resources, users select a profile, and Kueue ensures the workload runs only when quota is available.</p>
+<p><strong>Kueue</strong> solves this by introducing a cloud-native job queuing system that acts as an intelligent traffic controller for your cluster. Rather than failing a job when resources are full, Kueue holds the workload in a queue and schedules it the moment the required quota becomes available.</p>
+</div>
+<div class="paragraph">
+<p>In Red Hat OpenShift AI (RHOAI), <strong>Hardware Profiles</strong> serve as the bridge to this queuing system. Instead of writing complex Kubernetes deployment manifests, users select a profile, and Kueue ensures the workload runs smoothly based on fair-sharing rules and quotas.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_1_the_kueue_architecture"><a class="anchor" href="#_1_the_kueue_architecture"></a>1. The Kueue Architecture</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To effectively use Kueue, you must understand its three core architectural components. Together, these pieces translate physical infrastructure into governed, consumable quotas.</p>
 </div>
 <div class="sect2">
-<h3 id="_key_concepts"><a class="anchor" href="#_key_concepts"></a>Key Concepts</h3>
+<h3 id="_resourceflavor_the_hardware"><a class="anchor" href="#_resourceflavor_the_hardware"></a>ResourceFlavor (The Hardware)</h3>
+<div class="paragraph">
+<p>A <code>ResourceFlavor</code> represents the distinct types of compute available in your cluster. It maps to specific node labels and taints.</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>ResourceFlavor (Hardware):</strong> Defines <strong>what</strong> hardware allows (e.g., "Standard Node" vs "A100 GPU Node").</p>
+<p><strong>Example:</strong> You might have a <code>default-flavor</code> for standard CPU nodes and an <code>a100-flavor</code> that specifically targets nodes with <code>nvidia.com/gpu.product: A100</code> labels.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_clusterqueue_the_global_quota"><a class="anchor" href="#_clusterqueue_the_global_quota"></a>ClusterQueue (The Global Quota)</h3>
+<div class="paragraph">
+<p>A <code>ClusterQueue</code> acts as a cluster-wide pool of resources. It dictates <strong>how much</strong> of a specific <code>ResourceFlavor</code> can be consumed across the entire OpenShift environment.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Example:</strong> A <code>ClusterQueue</code> might dictate a strict limit of 4 NVIDIA GPUs and 100 CPUs for all data science workloads.</p>
 </li>
 <li>
-<p><strong>ClusterQueue (Quotas):</strong> Defines <strong>how much</strong> resource is available globally (e.g., "Total 4 GPUs").</p>
+<p><strong>Fair Sharing (Cohorts):</strong> Multiple <code>ClusterQueues</code> can be grouped into a "Cohort", allowing different teams to borrow unused capacity from one another dynamically.</p>
 </li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_localqueue_the_entry_point"><a class="anchor" href="#_localqueue_the_entry_point"></a>LocalQueue (The Entry Point)</h3>
+<div class="paragraph">
+<p>A <code>LocalQueue</code> is a namespace-scoped bucket where users actually submit their jobs. It acts as a bridge, pointing workloads from a specific user project up to the global <code>ClusterQueue</code>.</p>
+</div>
+<div class="ulist">
+<ul>
 <li>
-<p><strong>LocalQueue (Entry Point):</strong> The namespace-level bucket where users submit jobs.</p>
+<p><strong>Example:</strong> When an OpenShift AI user selects a "Local Queue" strategy in a Hardware Profile, their workbench is submitted to this namespace-level queue.</p>
 </li>
 </ul>
 </div>
@@ -152,102 +170,133 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="_phase_1_administrator_setup_infrastructure"><a class="anchor" href="#_phase_1_administrator_setup_infrastructure"></a>Phase 1: Administrator Setup (Infrastructure)</h2>
+<h2 id="_2_installing_and_enabling_kueue_in_rhoai"><a class="anchor" href="#_2_installing_and_enabling_kueue_in_rhoai"></a>2. Installing and Enabling Kueue in RHOAI</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To enable this architecture, the cluster administrator must define the physical hardware properties and the logical quotas.</p>
+<p>Before you can create queues or link them to Hardware Profiles, the cluster administrator must install the necessary Operators and configure the RHOAI control plane to manage Kueue.</p>
 </div>
 <div class="sect2">
-<h3 id="_1_activate_kueue_for_the_project"><a class="anchor" href="#_1_activate_kueue_for_the_project"></a>1. Activate Kueue for the Project</h3>
+<h3 id="_step_1_install_the_kueue_operator"><a class="anchor" href="#_step_1_install_the_kueue_operator"></a>Step 1: Install the Kueue Operator</h3>
 <div class="paragraph">
-<p>Kueue uses an "opt-in" model. You must label the data science project to enable the webhook.</p>
+<p>Kueue is not installed by default with OpenShift.</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Replace with your target namespace (e.g., ai-team-a)
-oc label namespace ai-team-a kueue.openshift.io/managed=true</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_2_define_resourceflavors_the_hardware"><a class="anchor" href="#_2_define_resourceflavors_the_hardware"></a>2. Define ResourceFlavors (The Hardware)</h3>
-<div class="paragraph">
-<p>Create flavors to represent the distinct types of compute available.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
-kind: ResourceFlavor
-metadata:
-  name: default-flavor # Standard CPU nodes
----
-apiVersion: kueue.x-k8s.io/v1beta1
-kind: ResourceFlavor
-metadata:
-  name: a100-flavor # High-performance GPU nodes
-spec:
-  nodeLabels:
-    nvidia.com/gpu.product: "A100-SXM4-80GB"
-  tolerations:
-    - key: "nvidia.com/gpu"
-      operator: "Exists"
-      effect: "NoSchedule"</code></pre>
-</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Log in to the OpenShift Container Platform web console as a <code>cluster-admin</code>.</p>
+</li>
+<li>
+<p>Navigate to <strong>Operators</strong> &#8594; <strong>OperatorHub</strong>.</p>
+</li>
+<li>
+<p>Search for the <strong>Red Hat build of Kueue</strong> Operator and install it using the default settings.</p>
+</li>
+</ol>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_3_configure_the_clusterqueue_the_quota"><a class="anchor" href="#_3_configure_the_clusterqueue_the_quota"></a>3. Configure the ClusterQueue (The Quota)</h3>
+<h3 id="_step_2_configure_the_datasciencecluster_dsc"><a class="anchor" href="#_step_2_configure_the_datasciencecluster_dsc"></a>Step 2: Configure the DataScienceCluster (DSC)</h3>
 <div class="paragraph">
-<p>Set the hard limits for your cluster. In this example, we define quotas for CPU, Memory, and NVIDIA GPUs.</p>
+<p>Next, you must instruct the OpenShift AI Operator to manage the Kueue component.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to <strong>Operators</strong> &#8594; <strong>Installed Operators</strong> &#8594; <strong>Red Hat OpenShift AI</strong>.</p>
+</li>
+<li>
+<p>Click the <strong>Data Science Cluster</strong> tab and select your active <code>DataScienceCluster</code> resource (e.g., <code>default-dsc</code>).</p>
+</li>
+<li>
+<p>Select the <strong>YAML</strong> tab.</p>
+</li>
+<li>
+<p>Ensure the <code>kueue</code> component&#8217;s <code>managementState</code> is set to <code>Managed</code>:</p>
+</li>
+</ol>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
-kind: ClusterQueue
-metadata:
-  name: main-cluster-queue
-spec:
-  namespaceSelector: {} # Applies to all managed namespaces
-  resourceGroups:
-    - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
-      flavors:
-        - name: default-flavor
-          resources:
-            - name: "cpu"
-              nominalQuota: "100"
-            - name: "memory"
-              nominalQuota: "500Gi"
-        - name: a100-flavor
-          resources:
-            - name: "nvidia.com/gpu"
-              nominalQuota: "4" # Total available A100s</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
+  components:
+    kueue:
+      managementState: Managed</code></pre>
 </div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <strong>Save</strong>.</p>
+</li>
+</ol>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_4_create_the_localqueue_the_bridge"><a class="anchor" href="#_4_create_the_localqueue_the_bridge"></a>4. Create the LocalQueue (The Bridge)</h3>
+<h3 id="_step_3_enable_kueue_in_the_rhoai_dashboard"><a class="anchor" href="#_step_3_enable_kueue_in_the_rhoai_dashboard"></a>Step 3: Enable Kueue in the RHOAI Dashboard</h3>
 <div class="paragraph">
-<p>Create a queue inside the user&#8217;s namespace that points to the global ClusterQueue.</p>
+<p>Finally, you must expose Kueue features within the OpenShift AI user interface so that administrators can select Local Queues when creating Hardware Profiles.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to <strong>Home</strong> &#8594; <strong>API Explorer</strong> in the OpenShift console.</p>
+</li>
+<li>
+<p>Search for <code>OdhDashboardConfig</code> and click on the custom resource.</p>
+</li>
+<li>
+<p>Select the <code>odh-dashboard-config</code> instance in the <code>redhat-ods-applications</code> namespace.</p>
+</li>
+<li>
+<p>Select the <strong>YAML</strong> tab.</p>
+</li>
+<li>
+<p>Under <code>spec.dashboardConfig</code>, set the <code>disableKueue</code> flag to <code>false</code>:</p>
+</li>
+</ol>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
-kind: LocalQueue
-metadata:
-  name: default-queue
-  namespace: ai-team-a
-  annotations:
-    kueue.x-k8s.io/default-queue: "true" # Auto-assigns workloads to this queue
-spec:
-  clusterQueue: main-cluster-queue</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
+  dashboardConfig:
+    disableKueue: false</code></pre>
 </div>
 </div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <strong>Save</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When <code>disableKueue</code> is set to <code>false</code>, RHOAI will automatically configure new projects for Kueue management by applying the required namespace labels and generating a default local queue.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>Next Steps</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With the infrastructure components installed and the RHOAI dashboard configured, your cluster is now ready to handle intelligent scheduling. In the next module, we will put this into practice by building the physical queues, setting up hardware profiles, and executing prioritized workloads.</p>
 </div>
 </div>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="tiering.html">Hardware Profile Tiering Strategy</a></span>
-  <span class="next"><a href="kueue-lab.html">Hardware Profiles &amp; Kueue</a></span>
+  <span class="next"><a href="kueue-lab.html">Lab: Kueue Workload Management</a></span>
 </nav>
 </article>
   </div>

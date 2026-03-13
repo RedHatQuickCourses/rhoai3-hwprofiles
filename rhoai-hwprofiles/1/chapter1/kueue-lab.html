@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Deploying Kueue-Aware Hardware Profiles :: From Hoarding to Governance at Scale with RHOAI Hardware Profiles</title>
+    <title>Lab: Intelligent Workload Management with Kueue :: From Hoarding to Governance at Scale with RHOAI Hardware Profiles</title>
     <link rel="prev" href="kueue.html">
     <link rel="next" href="summary.html">
     <meta name="generator" content="Antora 3.1.3">
@@ -56,10 +56,10 @@
     <a class="nav-link" href="tiering.html">Hardware Profile Tiering Strategy</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="kueue.html">Kueue Infrastructure Setup</a>
+    <a class="nav-link" href="kueue.html">Kueue Architecture &amp; Setup</a>
   </li>
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="kueue-lab.html">Hardware Profiles &amp; Kueue</a>
+    <a class="nav-link" href="kueue-lab.html">Lab: Kueue Workload Management</a>
   </li>
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="summary.html">Course Summary</a>
@@ -95,7 +95,7 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">From Hoarding to Governance at Scale with RHOAI Hardware Profiles</a></li>
-    <li><a href="kueue-lab.html">Hardware Profiles &amp; Kueue</a></li>
+    <li><a href="kueue-lab.html">Lab: Kueue Workload Management</a></li>
   </ul>
 </nav>
 </div>
@@ -104,39 +104,41 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Deploying Kueue-Aware Hardware Profiles</h1>
-<div id="toc" class="toc">
-<div id="toctitle">Table of Contents</div>
-<ul class="sectlevel1">
-<li><a href="#_overview">Overview</a></li>
-<li><a href="#_profile_templates">Profile Templates</a>
-<ul class="sectlevel2">
-<li><a href="#_1_standard_cpu_profile">1. Standard CPU Profile</a></li>
-<li><a href="#_2_high_performance_a100_training_profile">2. High-Performance A100 Training Profile</a></li>
-</ul>
-</li>
-<li><a href="#_validation">Validation</a></li>
-</ul>
-</div>
+<h1 class="page">Lab: Intelligent Workload Management with Kueue</h1>
 <div class="sect1">
-<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<h2 id="_objective"><a class="anchor" href="#_objective"></a>Objective</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Once the infrastructure is configured, you must create <strong>Hardware Profiles</strong> that users can select in the RHOAI Dashboard.</p>
+<p>In an unmanaged "Wild West" cluster, if your hardware has 4 GPUs and users submit jobs requiring 6 GPUs, the cluster destabilizes. Pods get stuck in crash loops, resources are fragmented, and nobody gets their work done.</p>
 </div>
 <div class="paragraph">
-<p>When integrating with Kueue, <strong>Workload Allocation</strong> changes significantly:</p>
+<p>In this lab, you will implement <strong>Kueue</strong> to act as your platform&#8217;s traffic controller. You will create a scenario of intentional resource scarcity to prove two critical outcomes:</p>
 </div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Preventing Crashes:</strong> Jobs that exceed capacity wait patiently in a queue instead of failing.</p>
+</li>
+<li>
+<p><strong>The VIP Lane:</strong> High-priority jobs jump ahead of low-priority jobs in the queue.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
-<p><strong>No Manual Selectors:</strong> You should generally avoid adding <code>nodeSelector</code> or <code>tolerations</code> directly to the profile.</p>
+<p><strong>Red Hat OpenShift AI 3.2+</strong> installed.</p>
 </li>
 <li>
-<p><strong>Managed Placement:</strong> Kueue automatically injects the necessary scheduling info based on the <code>ResourceFlavor</code>.</p>
+<p>Kueue is installed and its <code>managementState</code> is set to <code>Managed</code> in the Data Science Cluster.</p>
 </li>
 <li>
-<p><strong>Full Resource Definition:</strong> You must define <code>cpu</code>, <code>memory</code>, and <code>accelerator</code> identifiers so Kueue can calculate the total cost of the workload.</p>
+<p>You are logged into the <code>oc</code> CLI with <code>cluster-admin</code> privileges.</p>
 </li>
 </ul>
 </div>
@@ -144,125 +146,298 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="_profile_templates"><a class="anchor" href="#_profile_templates"></a>Profile Templates</h2>
+<h2 id="_step_1_prepare_the_factory_floor_namespaces"><a class="anchor" href="#_step_1_prepare_the_factory_floor_namespaces"></a>Step 1: Prepare the Factory Floor (Namespaces)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Use the following templates to create profiles in the <code>redhat-ods-applications</code> namespace.</p>
-</div>
-<div class="sect2">
-<h3 id="_1_standard_cpu_profile"><a class="anchor" href="#_1_standard_cpu_profile"></a>1. Standard CPU Profile</h3>
-<div class="paragraph">
-<p>This profile is for general data science work (JupyterLab, Pandas). It maps to the <code>default-flavor</code>.</p>
+<p>First, we will simulate a multi-tenant environment by creating two distinct project namespaces for competing teams. We must also label these namespaces so Kueue&#8217;s admission controller knows to monitor them.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: infrastructure.opendatahub.io/v1
-kind: HardwareProfile
-metadata:
-  name: kueue-standard-cpu
-  namespace: redhat-ods-applications
-  annotations:
-    opendatahub.io/display-name: "Standard CPU (Queued)"
-    opendatahub.io/description: "2-4 vCPU, 8-16GB RAM. Managed by Kueue."
-    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
-spec:
-  enabled: true
-  # Handover control to the LocalQueue we created earlier
-  managementState: "Managed"
-  location:
-    localQueue: "default-queue"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Create namespaces for two competing teams
+oc new-project ai-team-a
+oc new-project ai-team-b
 
-  identifiers:
-    - identifier: cpu
-      displayName: CPU
-      resourceType: CPU
-      defaultCount: 2
-      minCount: 2
-      maxCount: 4
-    - identifier: memory
-      displayName: Memory
-      resourceType: Memory
-      defaultCount: 8Gi
-      minCount: 8Gi
-      maxCount: 16Gi</code></pre>
+# Enable Kueue management on these namespaces
+oc label namespace ai-team-a kueue.openshift.io/managed=true
+oc label namespace ai-team-b kueue.openshift.io/managed=true</code></pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_2_high_performance_a100_training_profile"><a class="anchor" href="#_2_high_performance_a100_training_profile"></a>2. High-Performance A100 Training Profile</h3>
-<div class="paragraph">
-<p>This profile requests a GPU. Kueue will intercept this request, match it to the <code>a100-flavor</code> (which has the GPU quota), and schedule it only when a GPU is free.</p>
-</div>
-<div class="paragraph">
-<p><strong>Note:</strong> We include CPU and Memory identifiers to ensure the training container has sufficient system resources to drive the GPU.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: infrastructure.opendatahub.io/v1
-kind: HardwareProfile
-metadata:
-  name: kueue-training-a100
-  namespace: redhat-ods-applications
-  annotations:
-    opendatahub.io/display-name: "Training: NVIDIA A100"
-    opendatahub.io/description: "High-performance training node. 1 GPU, 12 CPUs, 64GB RAM."
-    opendatahub.io/dashboard-feature-visibility: '["workbench"]'
-spec:
-  enabled: true
-  managementState: "Managed"
-  location:
-    localQueue: "default-queue"
-
-  identifiers:
-    # 1. The Accelerator Request (Triggers the A100 Flavor)
-    - identifier: "nvidia.com/gpu"
-      displayName: "NVIDIA A100 GPU"
-      resourceType: Accelerator
-      defaultCount: 1
-      minCount: 1
-      maxCount: 2
-
-    # 2. The System Resource Requests
-    - identifier: cpu
-      displayName: CPU
-      resourceType: CPU
-      defaultCount: 12
-      minCount: 6
-      maxCount: 24
-    - identifier: memory
-      displayName: Memory
-      resourceType: Memory
-      defaultCount: 64Gi
-      minCount: 32Gi
-      maxCount: 128Gi</code></pre>
-</div>
-</div>
-</div>
+<hr>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_validation"><a class="anchor" href="#_validation"></a>Validation</h2>
+<h2 id="_step_2_define_the_global_quota_cluster_scope"><a class="anchor" href="#_step_2_define_the_global_quota_cluster_scope"></a>Step 2: Define the Global Quota (Cluster-Scope)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To verify the integration is working:</p>
+<p>We need to define the physical hardware profile (the <code>ResourceFlavor</code>) and the global maximum limit (the <code>ClusterQueue</code>). For this lab, we will simulate an expensive hardware pool by artificially capping our entire cluster queue at <strong>4 CPUs</strong>.</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+<div class="listingblock">
+<div class="title">Create <code>infrastructure.yaml</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: shared-cluster-queue
+spec:
+  namespaceSelector: {} # Monitors all namespaces with the managed label
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: "default-flavor"
+      resources:
+      - name: "cpu"
+        nominalQuota: 4 # The absolute ceiling for this queue
+      - name: "memory"
+        nominalQuota: 8Gi</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Apply the configuration</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f infrastructure.yaml</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_3_define_team_access_namespace_scope"><a class="anchor" href="#_step_3_define_team_access_namespace_scope"></a>Step 3: Define Team Access (Namespace-Scope)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Users do not submit jobs to the cluster queue. They submit jobs to a <code>LocalQueue</code> inside their own project. This acts as their entry point into the global pool.</p>
+</div>
+<div class="listingblock">
+<div class="title">Create <code>team-queues.yaml</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  namespace: ai-team-a
+  name: team-a-queue
+spec:
+  clusterQueue: shared-cluster-queue
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  namespace: ai-team-b
+  name: team-b-queue
+spec:
+  clusterQueue: shared-cluster-queue</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Apply the configuration</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f team-queues.yaml</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_4_configure_the_vip_priorities"><a class="anchor" href="#_step_4_configure_the_vip_priorities"></a>Step 4: Configure the "VIP" Priorities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Not all AI jobs are equal. We will create two priority tiers. When the cluster is full, Kueue uses these tiers to determine who gets admitted next.</p>
+</div>
+<div class="listingblock">
+<div class="title">Create <code>priorities.yaml</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: low-priority
+value: 100
+description: "Standard background exploration"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: high-priority
+value: 1000
+description: "Critical production training runs"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Apply the configuration</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f priorities.yaml</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_5_the_resource_contention_experiment"><a class="anchor" href="#_step_5_the_resource_contention_experiment"></a>Step 5: The "Resource Contention" Experiment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To see the Allocation Engine in action, we will submit three jobs. Combined, they require <strong>12 CPUs</strong>, but our quota only allows <strong>4 CPUs</strong>.</p>
+</div>
+<div class="ulist">
+<ul>
 <li>
-<p><strong>Launch a Workbench</strong> using the "Training: NVIDIA A100" profile.</p>
+<p><strong>Job 1 (Team B, Low Priority, 4 CPUs):</strong> Starts immediately. Consumes 100% of the quota for 60 seconds.</p>
 </li>
 <li>
-<p><strong>Check the Workload:</strong> Run <code>oc get workloads -n &lt;project-name&gt;</code>.</p>
+<p><strong>Job 2 (Team B, Low Priority, 4 CPUs):</strong> Submitted second. Will be queued (Suspended) because the quota is full.</p>
 </li>
 <li>
-<p><strong>Check the Quota:</strong> Run <code>oc describe clusterqueue main-cluster-queue</code> to see the "Used" resources increase.</p>
+<p><strong>Job 3 (Team A, High Priority, 4 CPUs):</strong> Submitted last. Will be queued, but will <strong>jump ahead</strong> of Job 2 because of its higher priority class.</p>
 </li>
-</ol>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Run this entire block in your terminal</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># 1. Submit Job 1 (Consumes the quota)
+oc create -f - &lt;&lt;EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lab-job-1-low
+  namespace: ai-team-b
+  labels:
+    kueue.x-k8s.io/queue-name: team-b-queue
+    kueue.x-k8s.io/priority-class: low-priority
+spec:
+  suspend: true # Required for Kueue to manage the job's startup
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: bash:5
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: 4
+      restartPolicy: Never
+EOF</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Run this entire block in your terminal</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># 2. Submit Job 2 (Enters the queue behind Job 1)
+oc create -f - &lt;&lt;EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lab-job-2-low
+  namespace: ai-team-b
+  labels:
+    kueue.x-k8s.io/queue-name: team-b-queue
+    kueue.x-k8s.io/priority-class: low-priority
+spec:
+  suspend: true
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: bash:5
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: 4
+      restartPolicy: Never
+EOF</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Run this entire block in your terminal</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># 3. Submit Job 3 (The VIP Line Jumper)
+oc create -f - &lt;&lt;EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lab-job-3-high
+  namespace: ai-team-a
+  labels:
+    kueue.x-k8s.io/queue-name: team-a-queue
+    kueue.x-k8s.io/priority-class: high-priority
+spec:
+  suspend: true
+  template:
+    spec:
+      containers:
+      - name: dummy
+        image: bash:5
+        command: ["sleep", "60"]
+        resources:
+          requests:
+            cpu: 4
+      restartPolicy: Never
+EOF</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_6_verification_and_observation"><a class="anchor" href="#_step_6_verification_and_observation"></a>Step 6: Verification and Observation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Observe how Kueue handles the contention without crashing the cluster.</p>
+</div>
+<div class="paragraph">
+<div class="title">1. View the Workloads via CLI</div>
+<p>Run the following command immediately after submitting the jobs:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get workloads -A</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Observation:</strong> <code>lab-job-1-low</code> will show as <code>Admitted</code>. The other two will show as <code>Pending</code>. Notice that there are no failed pod errors or Out of Memory (OOM) crashes on your nodes.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<div class="title">2. View the Priority Jump</div>
+<p>Run the workload check again after 60 seconds (when Job 1 finishes).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get workloads -A</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Observation:</strong> <code>lab-job-3-high</code> will transition to <code>Admitted</code>, while <code>lab-job-2-low</code> remains <code>Pending</code>. Kueue intelligently evaluated the queue and promoted the high-priority job from Team A to run next.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">3. Visualize in OpenShift AI</div>
+<ul>
+<li>
+<p>Log in to the RHOAI Dashboard.</p>
+</li>
+<li>
+<p>In the left-hand menu, navigate to <strong>Distributed Workloads</strong> &#8594; <strong>Resource Management</strong>.</p>
+</li>
+<li>
+<p>You will see a visual representation of your <code>shared-cluster-queue</code>, showing the 4 CPU limit, current utilization, and the exact order of the pending queue.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By establishing this queueing mechanism, you ensure your hardware is never idle, your cluster never crashes from over-subscription, and your most critical business workloads always run first.</p>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="kueue.html">Kueue Infrastructure Setup</a></span>
+  <span class="prev"><a href="kueue.html">Kueue Architecture &amp; Setup</a></span>
   <span class="next"><a href="summary.html">Course Summary</a></span>
 </nav>
 </article>

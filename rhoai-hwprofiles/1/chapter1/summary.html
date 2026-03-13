@@ -55,10 +55,10 @@
     <a class="nav-link" href="tiering.html">Hardware Profile Tiering Strategy</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="kueue.html">Kueue Infrastructure Setup</a>
+    <a class="nav-link" href="kueue.html">Kueue Architecture &amp; Setup</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="kueue-lab.html">Hardware Profiles &amp; Kueue</a>
+    <a class="nav-link" href="kueue-lab.html">Lab: Kueue Workload Management</a>
   </li>
   <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="summary.html">Course Summary</a>
@@ -179,16 +179,6 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>nodeSelector</code> and <code>tolerations</code> in the profile. Apply <code>NoSchedule</code> taints to the physical nodes.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>High Density (Dev)</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Time-Slicing</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Configure the GPU Operator to advertise multiple replicas per GPU. Best for interactive notebooks.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Guaranteed Performance</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>MIG (Multi-Instance GPU)</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Configure A100/H100 GPUs into hardware-isolated partitions. Target the specific MIG identifier (e.g., <code>1g.5gb</code>) in the profile.</p></td>
-</tr>
-<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Project Security</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scoped Profiles</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Create the Hardware Profile CR in a specific user <code>Namespace</code> instead of the global application namespace.</p></td>
@@ -246,7 +236,7 @@
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="kueue-lab.html">Hardware Profiles &amp; Kueue</a></span>
+  <span class="prev"><a href="kueue-lab.html">Lab: Kueue Workload Management</a></span>
 </nav>
 </article>
   </div>
