@@ -55,4 +55,4 @@ You now possess the blueprint for a scalable AI infrastructure. Your next step i
 2.  Identify "zombie" workloads that are reserving resources but not using them.
 3.  Migrate those users to a "Fair Share" hardware profile today.
 
-*Welcome to the era of Industrialized AI.*
+*Welcome to the era of scalable AI.*
